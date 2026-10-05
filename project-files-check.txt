@@ -1,0 +1,385 @@
+===== COMPOSER JSON =====
+{
+    "$schema": "https://getcomposer.org/schema.json",
+    "name": "laravel/laravel",
+    "type": "project",
+    "description": "The skeleton application for the Laravel framework.",
+    "keywords": ["laravel", "framework"],
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^11.31",
+        "laravel/tinker": "^2.9"
+    },
+    "require-dev": {
+        "fakerphp/faker": "^1.23",
+        "laravel/pail": "^1.1",
+        "laravel/pint": "^1.13",
+        "laravel/sail": "^1.26",
+        "mockery/mockery": "^1.6",
+        "nunomaduro/collision": "^8.1",
+        "phpunit/phpunit": "^11.0.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "Database\\Factories\\": "database/factories/",
+            "Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover --ansi"
+        ],
+        "post-update-cmd": [
+            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+        ],
+        "post-root-package-install": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+        ],
+        "post-create-project-cmd": [
+            "@php artisan key:generate --ansi",
+            "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
+            "@php artisan migrate --graceful --ansi"
+        ],
+        "dev": [
+            "Composer\\Config::disableProcessTimeout",
+            "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"npm run dev\" --names=server,queue,logs,vite"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "dont-discover": []
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "php-http/discovery": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
+
+===== PACKAGE JSON =====
+{
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "vite build",
+        "dev": "vite"
+    },
+    "devDependencies": {
+        "autoprefixer": "^10.4.20",
+        "axios": "^1.20.0",
+        "concurrently": "^9.0.1",
+        "laravel-vite-plugin": "^1.2.0",
+        "postcss": "^8.4.47",
+        "tailwindcss": "^3.4.13",
+        "vite": "^6.0.11"
+    },
+    "dependencies": {
+        "@tanstack/react-table": "^9.2.4",
+        "lucide-react": "^1.50.0",
+        "react-router-dom": "^7.18.4"
+    }
+}
+
+===== CHECK COMPOSER PACKAGES ONE BY ONE =====
+
+[33mIn ShowCommand.php line 321:[39m
+[37;41m                                                                                                   [39;49m
+[37;41m  Package "laravel/sanctum" not found, try using --available (-a) to show all available packages.  [39;49m
+[37;41m                                                                                                   [39;49m
+
+[32mshow [--all] [--locked] [-i|--installed] [-p|--platform] [-a|--available] [-s|--self] [-N|--name-only] [-P|--path] [-t|--tree] [-l|--latest] [-o|--outdated] [--ignore IGNORE] [-M|--major-only] [-m|--minor-only] [--patch-only] [-A|--sort-by-age] [-D|--direct] [--strict] [-f|--format FORMAT] [--no-dev] [--ignore-platform-req IGNORE-PLATFORM-REQ] [--ignore-platform-reqs] [--] [<package> [<version>]][39m
+
+---
+
+[33mIn ShowCommand.php line 321:[39m
+[37;41m                                                                                                     [39;49m
+[37;41m  Package "maatwebsite/excel" not found, try using --available (-a) to show all available packages.  [39;49m
+[37;41m                                                                                                     [39;49m
+
+[32mshow [--all] [--locked] [-i|--installed] [-p|--platform] [-a|--available] [-s|--self] [-N|--name-only] [-P|--path] [-t|--tree] [-l|--latest] [-o|--outdated] [--ignore IGNORE] [-M|--major-only] [-m|--minor-only] [--patch-only] [-A|--sort-by-age] [-D|--direct] [--strict] [-f|--format FORMAT] [--no-dev] [--ignore-platform-req IGNORE-PLATFORM-REQ] [--ignore-platform-reqs] [--] [<package> [<version>]][39m
+
+---
+
+[33mIn ShowCommand.php line 321:[39m
+[37;41m                                                                                                  [39;49m
+[37;41m  Package "morilog/jalali" not found, try using --available (-a) to show all available packages.  [39;49m
+[37;41m                                                                                                  [39;49m
+
+[32mshow [--all] [--locked] [-i|--installed] [-p|--platform] [-a|--available] [-s|--self] [-N|--name-only] [-P|--path] [-t|--tree] [-l|--latest] [-o|--outdated] [--ignore IGNORE] [-M|--major-only] [-m|--minor-only] [--patch-only] [-A|--sort-by-age] [-D|--direct] [--strict] [-f|--format FORMAT] [--no-dev] [--ignore-platform-req IGNORE-PLATFORM-REQ] [--ignore-platform-reqs] [--] [<package> [<version>]][39m
+
+
+===== ROUTES API =====
+<?php
+
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\ImportController;
+use App\Http\Controllers\Api\LookupController;
+use App\Http\Controllers\Api\SurveyCaseController;
+use Illuminate\Support\Facades\Route;
+
+Route::post('/auth/login', [AuthController::class, 'login']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/auth/me', [AuthController::class, 'me']);
+    Route::post('/auth/logout', [AuthController::class, 'logout']);
+
+    Route::get('/dashboard', DashboardController::class);
+    Route::get('/lookups', [LookupController::class, 'index']);
+
+    Route::apiResource('survey-cases', SurveyCaseController::class);
+
+    Route::post('/imports', [ImportController::class, 'store']);
+    Route::get('/imports/{importBatch}', [ImportController::class, 'show']);
+});
+
+===== ROUTES WEB =====
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+===== BOOTSTRAP APP =====
+<?php
+
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__.'/../routes/web.php',
+        commands: __DIR__.'/../routes/console.php',
+        health: '/up',
+    )
+    ->withMiddleware(function (Middleware $middleware) {
+        //
+    })
+    ->withExceptions(function (Exceptions $exceptions) {
+        //
+    })->create();
+
+===== USER MODEL =====
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+
+class User extends Authenticatable
+{
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
+
+    protected $fillable = [
+        'name', 'username', 'email', 'mobile', 'password', 'role', 'avatar', 'is_active', 'last_login_at',
+    ];
+
+    protected $hidden = ['password', 'remember_token'];
+
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'last_login_at' => 'datetime',
+            'password' => 'hashed',
+            'is_active' => 'boolean',
+        ];
+    }
+
+    public function isAdmin(): bool
+    {
+        return in_array($this->role, ['admin', 'manager'], true);
+    }
+}
+
+===== DEFAULT USERS MIGRATION =====
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('users', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->string('password');
+            $table->rememberToken();
+            $table->timestamps();
+        });
+
+        Schema::create('password_reset_tokens', function (Blueprint $table) {
+            $table->string('email')->primary();
+            $table->string('token');
+            $table->timestamp('created_at')->nullable();
+        });
+
+        Schema::create('sessions', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->foreignId('user_id')->nullable()->index();
+            $table->string('ip_address', 45)->nullable();
+            $table->text('user_agent')->nullable();
+            $table->longText('payload');
+            $table->integer('last_activity')->index();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('users');
+        Schema::dropIfExists('password_reset_tokens');
+        Schema::dropIfExists('sessions');
+    }
+};
+
+===== CUSTOM USERS MIGRATION =====
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    public function up(): void
+    {
+        Schema::create('users', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('username')->nullable()->unique();
+            $table->string('email')->unique();
+            $table->string('mobile')->nullable()->index();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->string('password');
+            $table->enum('role', ['admin', 'manager', 'employee', 'surveyor'])->default('employee')->index();
+            $table->string('avatar')->nullable();
+            $table->boolean('is_active')->default(true)->index();
+            $table->timestamp('last_login_at')->nullable();
+            $table->rememberToken();
+            $table->timestamps();
+            $table->softDeletes();
+        });
+
+        Schema::create('password_reset_tokens', function (Blueprint $table) {
+            $table->string('email')->primary();
+            $table->string('token');
+            $table->timestamp('created_at')->nullable();
+        });
+
+        Schema::create('sessions', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->foreignId('user_id')->nullable()->index();
+            $table->string('ip_address', 45)->nullable();
+            $table->text('user_agent')->nullable();
+            $table->longText('payload');
+            $table->integer('last_activity')->index();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('sessions');
+        Schema::dropIfExists('password_reset_tokens');
+        Schema::dropIfExists('users');
+    }
+};
+
+===== VITE CONFIG =====
+import { defineConfig } from 'vite';
+import laravel from 'laravel-vite-plugin';
+
+export default defineConfig({
+    plugins: [
+        laravel({
+            input: ['resources/css/app.css', 'resources/js/app.js'],
+            refresh: true,
+        }),
+    ],
+});
+
+===== TAILWIND CONFIG =====
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['Vazirmatn', 'Tahoma', 'Arial', 'sans-serif'],
+      },
+      colors: {
+        navy: '#0f2742',
+        soft: '#f4f8fb',
+      },
+    },
+  },
+  plugins: [],
+};
+
+===== APP JS =====
+import './bootstrap';
+
+===== RESOURCES SRC APP =====
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import LoginPage from './pages/LoginPage';
+import EmployeeDashboard from './pages/employee/EmployeeDashboard';
+import CaseListPage from './pages/employee/CaseListPage';
+import CaseCreatePage from './pages/employee/CaseCreatePage';
+import ImportExcelPage from './pages/employee/ImportExcelPage';
+
+function Protected({ children }: { children: React.ReactNode }) {
+  const token = localStorage.getItem('token');
+  if (!token) return <Navigate to="/login" replace />;
+  return <>{children}</>;
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/" element={<Navigate to="/employee/dashboard" replace />} />
+        <Route path="/employee/dashboard" element={<Protected><EmployeeDashboard /></Protected>} />
+        <Route path="/employee/cases" element={<Protected><CaseListPage /></Protected>} />
+        <Route path="/employee/cases/create" element={<Protected><CaseCreatePage /></Protected>} />
+        <Route path="/employee/import" element={<Protected><ImportExcelPage /></Protected>} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+===== CSS APP =====
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

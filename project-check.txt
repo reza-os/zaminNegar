@@ -1,0 +1,207 @@
+===== ROOT =====
+/e/work_projects/zaminNegar
+total 494
+drwxr-xr-x 1 reza 197609      0 Oct  2 23:43 ./
+drwxr-xr-x 1 reza 197609      0 Oct  2 13:49 ../
+-rw-r--r-- 1 reza 197609    258 Jan 25  2025 .editorconfig
+-rw-r--r-- 1 reza 197609   1099 Oct  2 13:22 .env
+-rw-r--r-- 1 reza 197609     44 Oct  2 18:35 .env.example
+drwxr-xr-x 1 reza 197609      0 Oct  2 14:00 .git/
+-rw-r--r-- 1 reza 197609    186 Jan 25  2025 .gitattributes
+-rw-r--r-- 1 reza 197609    286 Jan 25  2025 .gitignore
+drwxr-xr-x 1 reza 197609      0 Oct  2 23:24 app/
+-rwxr-xr-x 1 reza 197609    350 Jan 25  2025 artisan*
+drwxr-xr-x 1 reza 197609      0 Oct  2 23:24 bootstrap/
+-rw-r--r-- 1 reza 197609   2306 Oct  2 23:36 composer.json
+-rw-r--r-- 1 reza 197609 307382 Oct  2 23:36 composer.lock
+drwxr-xr-x 1 reza 197609      0 Jan 25  2025 config/
+drwxr-xr-x 1 reza 197609      0 Jan 25  2025 database/
+drwxr-xr-x 1 reza 197609      0 Oct  2 23:38 node_modules/
+-rw-r--r-- 1 reza 197609    529 Oct  2 23:38 package.json
+-rw-r--r-- 1 reza 197609    264 Oct  2 18:35 package-extra.json
+-rw-r--r-- 1 reza 197609 120669 Oct  2 23:38 package-lock.json
+-rw-r--r-- 1 reza 197609   1191 Jan 25  2025 phpunit.xml
+-rw-r--r-- 1 reza 197609     93 Jan 25  2025 postcss.config.js
+-rw-r--r-- 1 reza 197609     45 Oct  2 23:43 project-check.txt
+drwxr-xr-x 1 reza 197609      0 Jan 25  2025 public/
+-rw-r--r-- 1 reza 197609   4109 Jan 25  2025 README.md
+drwxr-xr-x 1 reza 197609      0 Oct  2 23:27 resources/
+drwxr-xr-x 1 reza 197609      0 Oct  2 23:25 routes/
+drwxr-xr-x 1 reza 197609      0 Jan 25  2025 storage/
+-rw-r--r-- 1 reza 197609    341 Oct  2 18:35 tailwind.config.js
+drwxr-xr-x 1 reza 197609      0 Jan 25  2025 tests/
+drwxr-xr-x 1 reza 197609      0 Oct  2 13:43 vendor/
+-rw-r--r-- 1 reza 197609    263 Jan 25  2025 vite.config.js
+
+===== VERSIONS =====
+PHP 8.2.12 (cli) (built: Oct 24 2023 21:15:15) (ZTS Visual C++ 2019 x64)
+[32mComposer[39m version [33m2.10.0[39m 2026-05-28 11:22:08
+v24.16.0
+11.13.0
+
+===== COMPOSER PACKAGES CHECK =====
+
+[37;41m                                                                                 [39;49m
+[37;41m  Too many arguments to "show" command, expected arguments "package" "version".  [39;49m
+[37;41m                                                                                 [39;49m
+
+[32mshow [--all] [--locked] [-i|--installed] [-p|--platform] [-a|--available] [-s|--self] [-N|--name-only] [-P|--path] [-t|--tree] [-l|--latest] [-o|--outdated] [--ignore IGNORE] [-M|--major-only] [-m|--minor-only] [--patch-only] [-A|--sort-by-age] [-D|--direct] [--strict] [-f|--format FORMAT] [--no-dev] [--ignore-platform-req IGNORE-PLATFORM-REQ] [--ignore-platform-reqs] [--] [<package> [<version>]][39m
+
+
+===== NPM PACKAGES CHECK =====
+zaminNegar@ E:\work_projects\zaminNegar
+├── @tanstack/react-table@9.2.4
+├── autoprefixer@10.6.1
+├── axios@1.20.0
+├── concurrently@9.2.4
+├── laravel-vite-plugin@1.3.0
+├── lucide-react@1.50.0
+├── postcss@8.5.28
+├── react-router-dom@7.18.4
+├── tailwindcss@3.4.19
+└── vite@6.4.3
+
+
+===== PROJECT TREE depth=4 =====
+.
+./.editorconfig
+./.env
+./.env.example
+./.gitattributes
+./.gitignore
+./app
+./app/Http
+./app/Http/Controllers
+./app/Http/Controllers/Api
+./app/Http/Controllers/Controller.php
+./app/Http/Requests
+./app/Http/Requests/StoreSurveyCaseRequest.php
+./app/Http/Requests/UpdateSurveyCaseRequest.php
+./app/Imports
+./app/Imports/SurveyCasesImport.php
+./app/Models
+./app/Models/ActivityLog.php
+./app/Models/CaseAction.php
+./app/Models/CaseDocument.php
+./app/Models/ImportBatch.php
+./app/Models/ImportError.php
+./app/Models/LookupItem.php
+./app/Models/SurveyCase.php
+./app/Models/User.php
+./app/Providers
+./app/Providers/AppServiceProvider.php
+./artisan
+./bootstrap
+./bootstrap/app.php
+./bootstrap/providers.php
+./composer.json
+./composer.lock
+./config
+./config/app.php
+./config/auth.php
+./config/cache.php
+./config/database.php
+./config/filesystems.php
+./config/logging.php
+./config/mail.php
+./config/queue.php
+./config/services.php
+./config/session.php
+./database
+./database/.gitignore
+./database/factories
+./database/factories/UserFactory.php
+./database/migrations
+./database/migrations/0001_01_01_000000_create_users_table.php
+./database/migrations/0001_01_01_000001_create_cache_table.php
+./database/migrations/0001_01_01_000002_create_jobs_table.php
+./database/migrations/2026_10_02_000001_create_users_table.php
+./database/migrations/2026_10_02_000002_create_lookup_items_table.php
+./database/migrations/2026_10_02_000003_create_import_batches_table.php
+./database/migrations/2026_10_02_000004_create_survey_cases_table.php
+./database/migrations/2026_10_02_000005_create_case_actions_table.php
+./database/migrations/2026_10_02_000006_create_activity_logs_table.php
+./database/migrations/2026_10_02_000007_create_import_errors_table.php
+./database/migrations/2026_10_02_000008_create_case_documents_table.php
+./database/seeders
+./database/seeders/AdminUserSeeder.php
+./database/seeders/DatabaseSeeder.php
+./database/seeders/LookupItemSeeder.php
+./package.json
+./package-extra.json
+./package-lock.json
+./phpunit.xml
+./postcss.config.js
+./project-check.txt
+./public
+./public/.htaccess
+./public/favicon.ico
+./public/index.php
+./public/robots.txt
+./README.md
+./resources
+./resources/css
+./resources/css/app.css
+./resources/js
+./resources/js/app.js
+./resources/js/bootstrap.js
+./resources/js/components
+./resources/js/components/StatCard.tsx
+./resources/js/layouts
+./resources/js/layouts/DashboardLayout.tsx
+./resources/js/pages
+./resources/js/pages/employee
+./resources/js/pages/LoginPage.tsx
+./resources/src
+./resources/src/api
+./resources/src/api/client.ts
+./resources/src/api/types.ts
+./resources/src/App.tsx
+./resources/src/index.css
+./resources/views
+./resources/views/welcome.blade.php
+./routes
+./routes/api.php
+./routes/console.php
+./routes/web.php
+./storage
+./storage/app
+./storage/app/.gitignore
+./storage/app/private
+./storage/app/private/.gitignore
+./storage/app/public
+./storage/app/public/.gitignore
+./storage/framework
+./storage/framework/.gitignore
+./storage/framework/cache
+./storage/framework/cache/.gitignore
+./storage/framework/cache/data
+./storage/framework/sessions
+./storage/framework/sessions/.gitignore
+./storage/framework/testing
+./storage/framework/testing/.gitignore
+./storage/framework/views
+./storage/framework/views/.gitignore
+./tailwind.config.js
+./tests
+./tests/Feature
+./tests/Feature/ExampleTest.php
+./tests/TestCase.php
+./tests/Unit
+./tests/Unit/ExampleTest.php
+./vite.config.js
+
+===== KEY FILES CHECK =====
+FOUND: composer.json
+FOUND: package.json
+FOUND: vite.config.js
+FOUND: tailwind.config.js
+FOUND: postcss.config.js
+FOUND: routes/api.php
+FOUND: routes/web.php
+FOUND: bootstrap/app.php
+FOUND: app/Models/User.php
+MISSING: resources/js/app.jsx
+MISSING: resources/js/app.tsx
+FOUND: resources/js/app.js
+FOUND: resources/css/app.css
