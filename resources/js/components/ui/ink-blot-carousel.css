@@ -1,0 +1,79 @@
+/* Hero carousel styles. All selectors namespaced so nothing leaks to the admin app. */
+.znh-root{position:relative;isolation:isolate;display:block;width:100%;height:100vh;height:100svh;min-height:0;overflow:hidden;background:#092f35;color:#fff;outline:none;touch-action:pan-y;}
+.znh-root:focus-visible{outline:3px solid #a7f3d0;outline-offset:-3px}
+.znh-background,.znh-image,.znh-ink-layer,.znh-overlay-tint,.znh-overlay-grid{position:absolute;inset:0;width:100%;height:100%;}
+.znh-background{overflow:hidden;background:linear-gradient(115deg,#063b3e,#1b4851 58%,#102431)}
+.znh-image{object-fit:cover;object-position:center;max-width:none;display:block;user-select:none;pointer-events:none}
+.znh-ink-layer{display:block;pointer-events:none;overflow:hidden}
+.znh-overlay-tint{pointer-events:none;background:linear-gradient(270deg,rgba(2,17,25,.88) 0%,rgba(5,24,32,.76) 32%,rgba(8,26,33,.22) 72%,rgba(9,27,34,.18) 100%),linear-gradient(0deg,rgba(2,12,20,.62),transparent 32%)}
+.znh-overlay-grid{pointer-events:none;opacity:.26;background-image:linear-gradient(rgba(255,255,255,.13) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.13) 1px,transparent 1px);background-size:96px 96px;mask-image:linear-gradient(90deg,#000,transparent 76%)}
+.znh-copy{position:absolute;z-index:2;right:clamp(22px,6.5vw,110px);left:clamp(22px,6.5vw,110px);top:49%;transform:translateY(-43%);max-width:min(720px,73vw);pointer-events:none;animation:znh-reveal .7s cubic-bezier(.23,.8,.2,1) both;}
+.znh-eyebrow{display:flex;align-items:center;gap:12px;font-size:clamp(11px,1vw,14px);font-weight:800;letter-spacing:0;line-height:1.8;color:#b5f6e0;}
+.znh-signal{display:block;flex-shrink:0;height:7px;width:7px;border-radius:50%;background:#35ddb2;box-shadow:0 0 0 5px rgba(53,221,178,.17)}
+.znh-title{margin:17px 0 0;font-size:clamp(35px,5vw,77px);line-height:1.35;letter-spacing:-.024em;font-weight:900;color:white;text-wrap:balance;text-shadow:0 3px 35px rgba(0,0,0,.12)}
+.znh-description{max-width:640px;margin:23px 0 0;color:rgba(240,255,252,.90);font-size:clamp(14px,1.2vw,18px);line-height:2.05;font-weight:450;text-wrap:pretty}
+.znh-actions{display:flex;flex-wrap:wrap;gap:13px;margin-top:30px;pointer-events:auto}
+.znh-action{display:inline-flex;align-items:center;justify-content:center;gap:12px;min-height:54px;padding:12px 27px;border-radius:14px;font-size:14px;font-weight:900;text-decoration:none;transition:background .2s ease,color .2s ease,transform .2s ease,border-color .2s ease;}
+.znh-action:hover{transform:translateY(-2px)}
+.znh-action:focus-visible,.znh-nav:focus-visible{outline:3px solid #a7f3d0;outline-offset:4px}
+.znh-action-primary{color:#073b39;background:#b7f7e1;box-shadow:0 10px 35px rgba(0,0,0,.13)}
+.znh-action-primary:hover{background:#fff}
+.znh-action-secondary{border:1px solid rgba(255,255,255,.61);color:#fff;background:rgba(15,32,37,.25)}
+.znh-action-secondary:hover{border-color:#fff;background:rgba(255,255,255,.18)}
+.znh-footer{position:absolute;z-index:3;bottom:clamp(44px,7.3vh,87px);right:clamp(22px,6.5vw,110px);left:clamp(22px,6.5vw,110px);display:flex;align-items:center;justify-content:space-between;pointer-events:none}
+.znh-counter{display:flex;align-items:center;gap:10px;direction:ltr;font-family:Tahoma,Arial,sans-serif;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;color:rgba(255,255,255,.8)}
+.znh-counter span:first-child{font-size:25px;color:#fff}
+.znh-counter-separator{opacity:.45}
+.znh-controls{display:flex;direction:rtl;gap:9px;pointer-events:auto}
+.znh-nav{display:grid;place-items:center;width:47px;height:47px;appearance:none;border:1px solid rgba(255,255,255,.55);background:rgba(8,28,32,.27);border-radius:50%;color:#fff;cursor:pointer;transition:background .2s ease}
+.znh-nav:not(:disabled):hover{background:#b7f7e1;color:#073b39}
+.znh-nav:disabled{opacity:.5;cursor:not-allowed}
+.znh-progress{position:absolute;right:clamp(22px,6.5vw,110px);left:clamp(22px,6.5vw,110px);bottom:clamp(28px,4vh,48px);height:2px;background:rgba(255,255,255,.22);z-index:3}
+.znh-progress-bar{width:100%;height:100%;background:#b7f7e1;transform-origin:right center;transform:scaleX(0);animation:znh-progress linear forwards}
+.znh-sr-only{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@keyframes znh-progress{to{transform:scaleX(1)}}
+@keyframes znh-reveal{from{opacity:0;transform:translate(0,calc(-43% + 22px))}to{opacity:1;transform:translateY(-43%)}}
+@media(max-width:767px){
+ .znh-image{object-position:center center}
+ .znh-overlay-tint{background:linear-gradient(0deg,rgba(1,15,22,.94) 0%,rgba(2,22,27,.80) 53%,rgba(2,23,31,.34) 100%)}
+ .znh-overlay-grid{opacity:.13;background-size:65px 65px}
+ .znh-copy{top:auto;bottom:clamp(132px,18vh,170px);right:22px;left:22px;max-width:none;transform:none;animation:znh-reveal-mobile .55s ease both}
+ .znh-title{font-size:clamp(30px,8.5vw,46px);line-height:1.4;margin-top:13px}
+ .znh-description{font-size:14px;line-height:1.95;margin-top:13px;max-width:550px}
+ .znh-actions{margin-top:20px;gap:9px}
+ .znh-action{min-height:47px;font-size:12px;padding:11px 17px;border-radius:12px}
+ .znh-footer{bottom:72px;right:23px;left:23px}
+ .znh-progress{bottom:45px;right:23px;left:23px}
+ .znh-counter span:first-child{font-size:19px}
+ .znh-nav{height:39px;width:39px}
+}
+@media(max-width:380px){
+ .znh-copy{bottom:128px}
+ .znh-title{font-size:29px}
+ .znh-description{font-size:13px}
+ .znh-actions{gap:7px}
+ .znh-action{padding:9px 12px}
+}
+@media(max-height:690px) and (min-width:768px){
+ .znh-copy{top:52%}
+ .znh-title{font-size:clamp(32px,4.25vw,60px);margin-top:10px}
+ .znh-description{margin-top:12px;line-height:1.75}
+ .znh-actions{margin-top:16px}
+ .znh-footer{bottom:49px}
+ .znh-progress{bottom:28px}
+}
+@media(prefers-reduced-motion:reduce){
+ .znh-copy{animation:none}
+ .znh-action,.znh-nav{transition:none}
+ .znh-progress-bar{animation:none!important}
+}
+@keyframes znh-reveal-mobile{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+
+@media(max-height:590px) and (max-width:767px){
+ .znh-copy{bottom:107px}
+ .znh-title{font-size:clamp(24px,7vw,34px);line-height:1.25}
+ .znh-description{line-height:1.6;margin-top:7px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+ .znh-actions{margin-top:12px}
+ .znh-footer{bottom:53px}
+ .znh-progress{bottom:30px}
+}

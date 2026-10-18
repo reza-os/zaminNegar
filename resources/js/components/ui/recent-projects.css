@@ -1,0 +1,7 @@
+/* تصویر موقت بدون دانلود فایل و بدون SVG/Canvas پرهزینه. */
+.zg-map-placeholder {
+  background-image:
+    radial-gradient(ellipse 48% 58% at 88% 8%, transparent 60%, rgb(5 150 105 / .11) 61%, transparent 63%, transparent 68%, rgb(5 150 105 / .10) 69%, transparent 71%, transparent 76%, rgb(5 150 105 / .09) 77%, transparent 79%),
+    repeating-radial-gradient(ellipse at 8% 110%, transparent 0 21px, rgb(15 118 110 / .085) 22px 23px, transparent 24px 43px),
+    linear-gradient(130deg, rgb(255 255 255 / .05), rgb(15 118 110 / .035));
+}

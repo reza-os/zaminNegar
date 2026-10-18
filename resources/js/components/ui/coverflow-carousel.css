@@ -1,0 +1,25 @@
+/* Partner-logo coverflow: small, isolated styles; no global selectors or JS animation loop. */
+.znp-carousel{width:100%;min-width:0}
+.znp-stage{position:relative;isolation:isolate;height:118px;overflow:hidden;perspective:1000px;touch-action:pan-y;cursor:grab;outline:none;user-select:none;-webkit-user-select:none}
+.znp-stage:active{cursor:grabbing}
+.znp-stage:focus-visible{outline:2px solid #0f766e;outline-offset:-3px;border-radius:12px}
+.znp-card{position:absolute;top:8px;left:50%;display:flex;align-items:center;justify-content:center;width:clamp(120px,13vw,164px);height:98px;padding:16px 19px;border:1px solid #e6eeeb;background:#fff;border-radius:16px;box-shadow:0 3px 14px rgba(16,42,46,.025);backface-visibility:hidden;transform-style:preserve-3d;transition:transform 490ms cubic-bezier(.2,.75,.2,1),opacity 350ms ease,border-color 250ms ease;pointer-events:none}
+.znp-card--active{border-color:#b5dbd2;box-shadow:0 7px 24px rgba(14,77,72,.065)}
+.znp-logo{display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;filter:none;user-select:none}
+.znp-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;color:#849b9b;font-size:11px;line-height:1.5;white-space:nowrap}
+.znp-placeholder svg{color:#9ab4ad}
+.znp-bottom{display:flex;align-items:center;justify-content:center;gap:17px;margin-top:2px;direction:rtl}
+.znp-arrow{display:grid;width:30px;height:30px;place-items:center;border:1px solid #dfebe8;border-radius:50%;background:#fff;color:#45776f;cursor:pointer;transition:background-color .2s,border-color .2s}
+.znp-arrow:hover{background:#edf8f4;border-color:#b5d8cf}
+.znp-arrow:focus-visible{outline:2px solid #047857;outline-offset:2px}
+.znp-count{min-width:58px;text-align:center;direction:ltr;color:#647b7a;font:500 11px/1.2 Tahoma,Arial,sans-serif;letter-spacing:.13em;font-variant-numeric:tabular-nums}
+.znp-count span{padding:0 3px;color:#adbfbd}
+@media(max-width:639px){
+ .znp-stage{height:100px;perspective:730px}
+ .znp-card{top:7px;width:110px;height:78px;border-radius:13px;padding:13px 12px}
+ .znp-placeholder{font-size:10px;gap:4px}
+ .znp-placeholder svg{width:17px;height:17px}
+ .znp-bottom{margin-top:0}
+ .znp-arrow{width:29px;height:29px}
+}
+@media(prefers-reduced-motion:reduce){.znp-card,.znp-arrow{transition:none!important}}

@@ -1,0 +1,175 @@
+/* Glass navigation styles: only these prefixed selectors affect the landing page. */
+.zng-header {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: 60;
+  padding: max(12px, env(safe-area-inset-top)) 16px 0;
+  pointer-events: none;
+}
+.zng-header-inner,
+.zng-mobile-panel {
+  pointer-events: auto;
+  border: 1px solid rgba(255,255,255,.26);
+  background: rgba(9, 35, 43, .46);
+  -webkit-backdrop-filter: blur(18px) saturate(125%);
+  backdrop-filter: blur(18px) saturate(125%);
+  box-shadow: 0 10px 36px rgba(0,15,25,.16), inset 0 1px 0 rgba(255,255,255,.12);
+  color: white;
+}
+.zng-header-inner {
+  max-width: 1240px;
+  min-height: 76px;
+  margin-inline: auto;
+  padding: 10px 16px;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  transition: background .2s ease, box-shadow .2s ease;
+}
+.zng-header--scrolled .zng-header-inner,
+.zng-header--scrolled .zng-mobile-panel { background: rgba(8, 32, 41, .84); }
+.zng-brand {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 10px;
+  min-width: 0;
+  text-decoration: none;
+  color: #fff;
+}
+.zng-brand-symbol {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  flex-shrink: 0;
+  border-radius: 15px;
+  border: 1px solid rgba(207,255,233,.4);
+  background: rgba(50, 209, 157, .20);
+  color: #c1ffe7;
+}
+.zng-brand-logo { display: block; width: 100%; height: 100%; object-fit: contain; padding: 4px; }
+.zng-brand-label { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.zng-brand-name { font-size: 17px; font-weight: 900; line-height: 1.4; white-space: nowrap; }
+.zng-brand-slogan { font-size: 10px; font-weight: 500; opacity: .77; white-space: nowrap; }
+.zng-pill-nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 5px;
+  min-width: 0;
+  border-radius: 9999px;
+  background: rgba(255,255,255,.075);
+  border: 1px solid rgba(255,255,255,.14);
+}
+.zng-pill-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 0 12px;
+  gap: 7px;
+  border-radius: 9999px;
+  color: rgba(255,255,255,.88);
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.4;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color .18s ease, background .18s ease, box-shadow .18s ease;
+}
+.zng-pill-link:hover { color: #fff; background: rgba(255,255,255,.12); }
+.zng-pill-link--active,
+.zng-pill-link--active:hover {
+  color: #07352f;
+  background: #d9fff0;
+  box-shadow: 0 4px 14px rgba(0,0,0,.11);
+}
+.zng-header-actions { display: inline-flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+.zng-login {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  min-height: 43px;
+  padding: 0 15px;
+  border-radius: 13px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #07382d;
+  background: #b7f7e1;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background .18s ease;
+}
+.zng-login:hover { background: #fff; }
+.zng-mobile-toggle {
+  display: none;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 13px;
+  border: 1px solid rgba(255,255,255,.25);
+  background: rgba(255,255,255,.10);
+  color: #fff;
+  cursor: pointer;
+}
+.zng-mobile-panel { display: none; }
+.zng-mobile-link {
+  display: flex;
+  align-items: center;
+  min-height: 46px;
+  gap: 11px;
+  padding: 10px 14px;
+  color: #fff;
+  font-weight: 750;
+  font-size: 13px;
+  text-decoration: none;
+  border-radius: 12px;
+}
+.zng-mobile-link:hover { background: rgba(255,255,255,.13); }
+.zng-mobile-link--active { background: rgba(183,247,225,.18); color: #c5ffe8; }
+.zng-mobile-login { margin-top: 8px; border: 1px solid rgba(255,255,255,.2); }
+.zng-header a:focus-visible,
+.zng-header button:focus-visible { outline: 3px solid #b7f7e1; outline-offset: 3px; }
+@media (max-width: 1130px) {
+  .zng-brand-slogan { display: none; }
+  .zng-pill-link { padding-inline: 10px; }
+}
+@media (max-width: 1023px) {
+  .zng-header { padding: max(10px, env(safe-area-inset-top)) 12px 0; }
+  .zng-header-inner { min-height: 66px; padding: 8px 12px; border-radius: 20px; }
+  .zng-header .zng-pill-nav { display: none; }
+  .zng-mobile-toggle { display: inline-flex; }
+  .zng-mobile-panel {
+    display: grid;
+    width: min(420px, calc(100vw - 24px));
+    margin: 9px max(0px, calc((100vw - 1240px) / 2)) 0 auto;
+    border-radius: 20px;
+    padding: 10px;
+  }
+}
+@media (max-width: 540px) {
+  .zng-header-inner { min-height: 60px; }
+  .zng-brand-symbol { width: 43px; height: 43px; border-radius: 13px; }
+  .zng-brand-name { font-size: 15px; }
+  .zng-login { min-height: 42px; padding: 0 11px; font-size: 11px; }
+  .zng-header-actions { gap: 6px; }
+}
+@media (max-width: 385px) {
+  .zng-brand-label { display: none; }
+  .zng-login { padding-inline: 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .zng-header-inner, .zng-pill-link, .zng-login { transition: none; }
+}
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .zng-header-inner, .zng-mobile-panel { background: rgba(8, 32, 41, .93); }
+}

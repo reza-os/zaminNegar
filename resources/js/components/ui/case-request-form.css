@@ -1,0 +1,52 @@
+/* زمین‌نگار — درخواست تشکیل پرونده | شیشه‌ای، سبک و سازگار با موبایل. */
+.zcr-section{position:relative;isolation:isolate;overflow:hidden;padding:clamp(52px,7vw,104px) 20px;background:#eef5f4}
+.zcr-backdrop{position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse 38% 52% at 86% 18%,rgba(23,167,131,.14),transparent 95%),radial-gradient(ellipse 37% 55% at 12% 82%,rgba(255,174,103,.16),transparent 95%),linear-gradient(135deg,#f0f8f6 0%,#f5f8fa 47%,#eaf3f2 100%)}
+.zcr-container{width:100%;max-width:1180px;margin-inline:auto}
+.zcr-panel{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.88fr);align-items:center;gap:clamp(24px,5vw,78px);padding:clamp(24px,4vw,52px);border:1px solid rgba(255,255,255,.85);border-radius:30px;background:rgba(255,255,255,.53);box-shadow:0 20px 65px rgba(30,70,70,.07),inset 0 1px rgba(255,255,255,.7);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.zcr-panel::before{content:'';position:absolute;inset:0 28px auto;height:3px;background:linear-gradient(90deg,#0c7c69 0%,#19a47d 60%,#f3a66b 100%);border-radius:0 0 6px 6px}
+.zcr-content{min-width:0;padding-inline:clamp(0px,2vw,24px)}
+.zcr-eyebrow{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(0,132,103,.15);border-radius:99px;padding:7px 13px;background:rgba(255,255,255,.66);color:#087b62;font-size:12px;font-weight:700}
+.zcr-title{margin:22px 0 0;max-width:490px;color:#183b3f;font-size:clamp(23px,2.6vw,35px);font-weight:800;line-height:1.65;letter-spacing:-.025em}
+.zcr-lead{margin:14px 0 0;max-width:520px;color:#526770;font-size:clamp(13px,1.1vw,15px);line-height:2.15}
+.zcr-benefits{display:grid;gap:15px;list-style:none;padding:0;margin:28px 0 0}
+.zcr-benefits li{display:flex;align-items:center;gap:10px;color:#294652;font-size:13px;font-weight:600;line-height:1.75}
+.zcr-benefits svg{flex-shrink:0;color:#079c78}
+.zcr-footnote{display:flex;align-items:center;gap:8px;margin-top:35px;color:#71848b;font-size:11px;line-height:1.9}
+.zcr-footnote svg{flex-shrink:0;color:#3d9085}
+.zcr-form-card{width:100%;min-width:0;padding:clamp(20px,2.4vw,30px);border:1px solid rgba(255,255,255,.96);border-radius:24px;background:rgba(248,252,252,.67);box-shadow:0 16px 40px rgba(37,77,73,.07);backdrop-filter:blur(11px);-webkit-backdrop-filter:blur(11px)}
+.zcr-form-heading{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.zcr-form-icon{display:grid;width:39px;height:39px;flex-shrink:0;place-items:center;border-radius:13px;background:rgba(12,148,111,.1);color:#078469}
+.zcr-form-title{margin:0;color:#24404b;font-size:17px;font-weight:800;line-height:1.7}
+.zcr-form-hint{margin:2px 0 0;color:#788b93;font-size:11.5px;line-height:1.8}
+.zcr-form{display:grid;gap:15px}
+.zcr-form-pair{display:grid;grid-template-columns:1fr 1fr;gap:13px;min-width:0}
+.zcr-field{min-width:0}
+.zcr-label{display:block;margin-bottom:7px;color:#354f59;font-size:12px;font-weight:700;line-height:1.7}
+.zcr-required{color:#df7333}
+.zcr-optional{color:#879aa0;font-size:11px;font-weight:400}
+.zcr-input-wrap{display:flex;align-items:center;gap:9px;width:100%;min-width:0;min-height:45px;padding:0 13px;border:1px solid rgba(135,166,168,.3);border-radius:12px;background:rgba(255,255,255,.78);color:#85a0a4;transition:border-color .16s,background-color .16s,box-shadow .16s}
+.zcr-input-wrap:focus-within{border-color:#22a488;background:rgba(255,255,255,.98);box-shadow:0 0 0 3px rgba(20,161,126,.11)}
+.zcr-input-wrap--error{border-color:#eaa5a0}
+.zcr-input-wrap svg{flex:0 0 18px}
+.zcr-input-wrap input,.zcr-input-wrap textarea{min-width:0;flex:1;width:100%;border:0;outline:0;background:transparent;color:#24444c;font-family:inherit;font-size:12.5px;font-weight:500;line-height:1.8}
+.zcr-input-wrap input{height:44px}
+.zcr-input-wrap input::placeholder,.zcr-input-wrap textarea::placeholder{color:#99a9ae;font-weight:400;opacity:1}
+.zcr-input-wrap input[dir=ltr]{text-align:right;font-variant-numeric:tabular-nums}
+.zcr-textarea-wrap{align-items:flex-start;padding-top:13px}
+.zcr-textarea-wrap svg{margin-top:4px}
+.zcr-textarea-wrap textarea{resize:vertical;min-height:82px;max-height:190px;padding:0 0 8px}
+.zcr-error{margin:5px 2px 0;color:#b73b33;font-size:11px;line-height:1.7}
+.zcr-submit{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:48px;padding:11px 15px;margin-top:2px;border:0;border-radius:12px;background:#087e67;color:#fff;cursor:pointer;font-family:inherit;font-size:13px;font-weight:700;line-height:1.7;box-shadow:0 8px 17px rgba(8,126,103,.14);transition:background-color .17s,transform .17s}
+.zcr-submit:hover{background:#076b59;transform:translateY(-1px)}
+.zcr-submit:focus-visible{outline:3px solid #43b79c;outline-offset:3px}
+.zcr-submit:disabled{cursor:wait;opacity:.7;transform:none}
+.zcr-feedback{display:flex;align-items:center;gap:8px;margin:0;padding:11px 12px;border-radius:10px;font-size:12px;line-height:1.9}
+.zcr-feedback--success{background:#e6f6ee;color:#10674d}
+.zcr-feedback--error{background:#fff0ed;color:#9a3f2e}
+.zcr-privacy{margin:0;color:#82949b;text-align:center;font-size:10.5px;line-height:1.9}
+.zcr-spin{animation:zcr-spin 1s linear infinite}
+@keyframes zcr-spin{to{transform:rotate(360deg)}}
+@media(max-width:850px){.zcr-panel{grid-template-columns:1fr;gap:26px}.zcr-content{padding-inline:3px}.zcr-footnote{margin-top:20px}.zcr-benefits{margin-top:20px;gap:10px}.zcr-form-card{max-width:630px;width:100%;margin-inline:auto}}
+@media(max-width:540px){.zcr-section{padding:48px 12px 58px}.zcr-panel{padding:23px 14px 16px;border-radius:23px;gap:24px}.zcr-panel::before{inset-inline:17px}.zcr-title{margin-top:12px;font-size:23px}.zcr-lead{font-size:12.5px;line-height:2}.zcr-benefits{gap:8px;margin-top:17px}.zcr-benefits li{font-size:12px}.zcr-footnote{font-size:10px;margin-top:16px}.zcr-form-card{padding:18px 13px;border-radius:18px}.zcr-form-pair{grid-template-columns:1fr;gap:15px}.zcr-form-heading{margin-bottom:18px}.zcr-input-wrap input,.zcr-input-wrap textarea{font-size:13px}}
+@media(prefers-reduced-motion:reduce){.zcr-submit,.zcr-input-wrap{transition:none}.zcr-submit:hover{transform:none}.zcr-spin{animation:none}}
+@supports not (backdrop-filter:blur(1px)){.zcr-panel{background:#f9fcfc}.zcr-form-card{background:#f3f9f8}}

@@ -1,0 +1,41 @@
+/* Scoped spotlight effect. No global pointer listeners, fixed attachment or blur animations. */
+.zg-glow-card {
+  --zg-rgb: 16 185 129;
+  --zg-x: 50%;
+  --zg-y: 50%;
+  position: relative;
+  isolation: isolate;
+  border: 1px solid rgb(203 213 225 / .68);
+  border-radius: 19px;
+  background: rgb(255 255 255 / .82);
+  box-shadow: 0 7px 28px rgb(15 36 51 / .035);
+  transition: border-color .25s ease, box-shadow .25s ease, transform .25s ease;
+}
+.zg-glow-card[data-zg-glow="blue"] { --zg-rgb: 59 130 246; }
+.zg-glow-card[data-zg-glow="purple"] { --zg-rgb: 168 85 247; }
+.zg-glow-card[data-zg-glow="red"] { --zg-rgb: 239 68 68; }
+.zg-glow-card[data-zg-glow="orange"] { --zg-rgb: 249 115 22; }
+.zg-glow-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  pointer-events: none;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: radial-gradient(240px circle at var(--zg-x) var(--zg-y), rgb(var(--zg-rgb) / .70), transparent 70%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity .22s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .zg-glow-card:hover { border-color: rgb(16 185 129 / .22); box-shadow: 0 12px 36px rgb(15 36 51 / .07); transform: translateY(-3px); }
+  .zg-glow-card:hover::before { opacity: 1; }
+}
+.zg-glow-card:focus-within::before { opacity: .35; }
+@media (prefers-reduced-motion: reduce) {
+  .zg-glow-card, .zg-glow-card::before { transition: none; }
+  .zg-glow-card:hover { transform: none; }
+}
