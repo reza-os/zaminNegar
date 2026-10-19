@@ -1,16 +1,58 @@
 {
+  "node_modules/@fontsource-variable/vazirmatn/files/vazirmatn-arabic-wght-normal.woff2": {
+    "file": "assets/vazirmatn-arabic-wght-normal-Cafbb7Zc.woff2",
+    "src": "node_modules/@fontsource-variable/vazirmatn/files/vazirmatn-arabic-wght-normal.woff2"
+  },
+  "node_modules/@fontsource-variable/vazirmatn/files/vazirmatn-latin-ext-wght-normal.woff2": {
+    "file": "assets/vazirmatn-latin-ext-wght-normal-tDTa1Fj6.woff2",
+    "src": "node_modules/@fontsource-variable/vazirmatn/files/vazirmatn-latin-ext-wght-normal.woff2"
+  },
+  "node_modules/@fontsource-variable/vazirmatn/files/vazirmatn-latin-wght-normal.woff2": {
+    "file": "assets/vazirmatn-latin-wght-normal-BFexNX-K.woff2",
+    "src": "node_modules/@fontsource-variable/vazirmatn/files/vazirmatn-latin-wght-normal.woff2"
+  },
   "resources/css/app.css": {
-    "file": "assets/app-BJGPNHs7.css",
+    "file": "assets/app-n-nDSS5a.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/app.tsx": {
-    "file": "assets/app-B5zLTQ8w.js",
+    "file": "assets/app-CyW_Ldgr.js",
     "name": "app",
     "src": "resources/js/app.tsx",
     "isEntry": true,
+    "dynamicImports": [
+      "resources/js/components/ui/feature-carousel.tsx",
+      "resources/js/components/ui/argent-loop-infinite-slider.tsx"
+    ],
     "css": [
-      "assets/app-BJGPNHs7.css"
+      "assets/app-CIcjsPKb.css"
+    ],
+    "assets": [
+      "assets/vazirmatn-arabic-wght-normal-Cafbb7Zc.woff2",
+      "assets/vazirmatn-latin-ext-wght-normal-tDTa1Fj6.woff2",
+      "assets/vazirmatn-latin-wght-normal-BFexNX-K.woff2"
+    ]
+  },
+  "resources/js/components/ui/argent-loop-infinite-slider.tsx": {
+    "file": "assets/argent-loop-infinite-slider-Bi1yAZFW.js",
+    "name": "argent-loop-infinite-slider",
+    "src": "resources/js/components/ui/argent-loop-infinite-slider.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.tsx"
+    ],
+    "css": [
+      "assets/argent-loop-infinite-slider-B2Wy7Wy1.css"
+    ]
+  },
+  "resources/js/components/ui/feature-carousel.tsx": {
+    "file": "assets/feature-carousel-BPThpcuO.js",
+    "name": "feature-carousel",
+    "src": "resources/js/components/ui/feature-carousel.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.tsx"
     ]
   }
 }
