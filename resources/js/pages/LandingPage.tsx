@@ -12,8 +12,8 @@ import PartnersSection from '../components/PartnersSection';
 import RecentProjectsSection from '../components/RecentProjectsSection';
 import CaseRequestSection from '../components/CaseRequestSection';
 import FeatureCarouselSection from '../components/FeatureCarouselSection';
-import SectionErrorBoundary from '../components/SectionErrorBoundary';
 import { company } from '../config/company';
+import SiteFooter from '../components/SiteFooter';
 import * as React from 'react';
 import InkBlotCarousel from '../components/ui/ink-blot-carousel';
 import { heroSettings, heroSlides } from '../config/hero';
@@ -38,14 +38,9 @@ function DeferredShowcase() {
   return (
     <div ref={sentinelRef}>
       {shouldMount ? (
-        <SectionErrorBoundary
-          name="InfiniteSlider"
-          fallback={<div role="status" className="flex h-[300px] items-center justify-center rounded-3xl bg-emerald-950 px-6 text-center text-sm text-white">بخش معرفی تصویری موقتاً در دسترس نیست.</div>}
-        >
-          <React.Suspense fallback={<div className="h-[480px] animate-pulse rounded-3xl bg-slate-200" aria-hidden="true" />}>
-            <InfiniteSlider />
-          </React.Suspense>
-        </SectionErrorBoundary>
+        <React.Suspense fallback={<div className="h-[480px] animate-pulse rounded-3xl bg-slate-200" aria-hidden="true" />}>
+          <InfiniteSlider />
+        </React.Suspense>
       ) : <div className="h-[480px] rounded-3xl bg-gradient-to-br from-emerald-950 to-slate-800" aria-hidden="true" />}
     </div>
   );
@@ -166,12 +161,7 @@ export default function LandingPage() {
         <CaseRequestSection />
       </main>
 
-      <footer className="border-t border-slate-200 bg-white py-8">
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 text-sm text-slate-500 md:flex-row md:items-center md:justify-between">
-          <div>© {company.name} - {company.slogan}</div>
-          <div>طراحی و توسعه سامانه مدیریت امور نقشه‌برداری</div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
