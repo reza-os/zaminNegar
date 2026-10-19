@@ -11,6 +11,8 @@ import SiteHeader from '../components/SiteHeader';
 import PartnersSection from '../components/PartnersSection';
 import RecentProjectsSection from '../components/RecentProjectsSection';
 import CaseRequestSection from '../components/CaseRequestSection';
+import FeatureCarouselSection from '../components/FeatureCarouselSection';
+import SectionErrorBoundary from '../components/SectionErrorBoundary';
 import { company } from '../config/company';
 import * as React from 'react';
 import InkBlotCarousel from '../components/ui/ink-blot-carousel';
@@ -36,9 +38,14 @@ function DeferredShowcase() {
   return (
     <div ref={sentinelRef}>
       {shouldMount ? (
-        <React.Suspense fallback={<div className="h-[480px] animate-pulse rounded-3xl bg-slate-200" aria-hidden="true" />}>
-          <InfiniteSlider />
-        </React.Suspense>
+        <SectionErrorBoundary
+          name="InfiniteSlider"
+          fallback={<div role="status" className="flex h-[300px] items-center justify-center rounded-3xl bg-emerald-950 px-6 text-center text-sm text-white">بخش معرفی تصویری موقتاً در دسترس نیست.</div>}
+        >
+          <React.Suspense fallback={<div className="h-[480px] animate-pulse rounded-3xl bg-slate-200" aria-hidden="true" />}>
+            <InfiniteSlider />
+          </React.Suspense>
+        </SectionErrorBoundary>
       ) : <div className="h-[480px] rounded-3xl bg-gradient-to-br from-emerald-950 to-slate-800" aria-hidden="true" />}
     </div>
   );
@@ -152,6 +159,9 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
+
+        {/* Original FeatureCarousel demo styling, kept intact just before the case request form. */}
+        <FeatureCarouselSection />
 
         <CaseRequestSection />
       </main>

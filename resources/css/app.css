@@ -1,3 +1,18 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* فونت اصلی زمین‌نگار */
+:root {
+  --site-font: "Vazirmatn Variable", Tahoma, Arial, sans-serif;
+}
+
+html,
+body,
+button,
+input,
+textarea,
+select,
+.font-sans {
+  font-family: var(--site-font);
+}

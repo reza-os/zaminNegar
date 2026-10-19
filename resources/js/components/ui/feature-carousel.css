@@ -1,0 +1,10 @@
+/* Scoped equivalents of the stock shadcn surface tokens. The exact source
+   Tailwind classes and visual styling of feature-carousel remain unchanged.
+   These fallbacks make the design match its demo in this older Laravel UI. */
+#zfeature .border-border\/40 { border-color: rgba(226, 232, 240, 0.4); }
+#zfeature .border-border\/20 { border-color: rgba(226, 232, 240, 0.2); }
+#zfeature .border-border\/50 { border-color: rgba(226, 232, 240, 0.5); }
+#zfeature .bg-secondary\/30 { background-color: rgba(241, 245, 249, 0.3); }
+#zfeature .bg-background { background-color: #fff; }
+#zfeature .border-background { border-color: #fff; }
+#zfeature .text-foreground { color: #0f172a; }
