@@ -195,7 +195,7 @@ class ManagerAnalyticsController extends Controller
             'recent_cases' => (clone $cases)->with('status:id,title')->latest('id')->limit(6)
                 ->get(['id', 'case_number', 'owner_full_name', 'status_id', 'created_at']),
             'recent_activities' => (clone $activities)->with('user:id,name')->latest('id')->limit(8)
-                ->get(['id', 'user_id', 'action', 'description', 'created_at']),
+                ->get(['id', 'user_id', 'action', 'description', 'old_values', 'created_at'])->each(fn($log) => $log->makeHidden('old_values')),
         ]);
     }
 }

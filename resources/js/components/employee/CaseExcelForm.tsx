@@ -2,8 +2,8 @@ import { FormEvent, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import { api } from '../../api/client';
-import '../../pages/employee/employee-warm.css';
 
+// Excel «پرونده‌ها»: 30 columns. Row #, days without action and balance are computed.
 type Field = { key: string; label: string; section: string; type?: 'date'|'number'|'textarea'|'select'; group?: string; required?: boolean; help?: string };
 const fields: Field[] = [
   {key:'case_date_jalali',label:'تاریخ پرونده (شمسی)',section:'اطلاعات اصلی',help:'مثال: ۱۴۰۵/۰۷/۰۱'},
@@ -39,7 +39,17 @@ type Option = {id:number;title:string;group_key?:string;name?:string};
 type FormState = Record<string,string>;
 const initial = Object.fromEntries(fields.map(f=>[f.key, f.type==='number'?'0':''])) as FormState;
 const faDigits = (str:string) => str.replace(/[۰-۹]/g, d=>String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d))).replace(/[٠-٩]/g,d=>String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)));
-
+const numericKeys=new Set(['national_code','postal_code','phone','contract_amount','received_amount']);
+const nameKeys=new Set(['owner_full_name','father_name']);
+const dateKeys=new Set(['case_date_jalali','birth_date_jalali','last_action_at_jalali','next_action_at_jalali']);
+const filterField=(key:string,raw:string)=>{
+  const value=faDigits(raw);
+  if(key==='phone')return value.replace(/[^0-9+\- ]/g,'');
+  if(numericKeys.has(key))return value.replace(key.endsWith('amount')?/[^0-9.]/g:/[^0-9]/g,'');
+  if(nameKeys.has(key))return value.replace(/[^\p{L}\p{M}\s\u200c\-]/gu,'');
+  if(dateKeys.has(key))return value.replace(/[^0-9/]/g,'').slice(0,10);
+  return raw;
+};
 export default function CaseExcelForm({id}:{id?:string}) {
   const navigate = useNavigate();
   const [form,setForm] = useState<FormState>(initial);
@@ -49,7 +59,6 @@ export default function CaseExcelForm({id}:{id?:string}) {
   const [loading,setLoading] = useState(Boolean(id));
   const [error,setError] = useState('');
   const [existing,setExisting] = useState<Record<string,unknown>|null>(null);
-  const readOnly = Boolean(id && existing && existing.can_edit === false);
   useEffect(()=>{
     let active=true;
     Promise.all([api.get('/lookups'),api.get('/case-assignees'),...(id?[api.get(`/survey-cases/${id}`)]:[])]).then(([l,p,c])=>{
@@ -61,18 +70,31 @@ export default function CaseExcelForm({id}:{id?:string}) {
     }).catch(err=>active&&setError(err.response?.data?.message||'دریافت اطلاعات فرم ناموفق بود')).finally(()=>active&&setLoading(false));
     return()=>{active=false;};
   },[id]);
-  const update=(key:string,value:string)=>setForm(p=>({...p,[key]:value}));
+  const update=(key:string,value:string)=>setForm(p=>({...p,[key]:filterField(key,value)}));
   const balance=Number(faDigits(form.contract_amount||'0'))-Number(faDigits(form.received_amount||'0'));
   async function submit(event:FormEvent){
-    event.preventDefault();if(readOnly)return;setSaving(true);setError('');
+    event.preventDefault();setSaving(true);setError('');
     const payload:Record<string,string|number|null>={};
     for(const field of fields){const value=faDigits(form[field.key]||'').trim();payload[field.key]=!value?null:field.type==='select'?Number(value):field.type==='number'?Number(value):value;}
-    try{ if(id)await api.put(`/survey-cases/${id}`,payload); else await api.post('/survey-cases',payload); navigate('/employee/cases'); }
-    catch(err:any){const first=Object.values(err.response?.data?.errors||{}).flat()[0];setError(String(first||err.response?.data?.message||'ثبت اطلاعات ناموفق بود'));}
+    for(const key of numericKeys){if(form[key] && !/^\+?[0-9. -]+$/.test(faDigits(form[key]))) {setSaving(false);setError('در فیلدهای عددی واردکردن حروف مجاز نیست.');return;}}
+    try{
+      if(id)await api.put(`/survey-cases/${id}`,payload);
+      else await api.post('/survey-cases',payload);
+      navigate('/employee/cases');
+    }catch(err:any){const first=Object.values(err.response?.data?.errors||{}).flat()[0];setError(String(first||err.response?.data?.message||'ثبت اطلاعات ناموفق بود'));}
     finally{setSaving(false);}
   }
-  return <DashboardLayout><div dir="rtl" className="employee-warm-page space-y-5">
-    <header className="employee-hero"><div className="employee-badge-soft mb-3">فرم جامع پرونده</div><h1 className="text-2xl font-black text-[var(--ew-text)]">{readOnly?'مشاهده پرونده (فقط خواندنی)':id?'ویرایش پرونده من':'ثبت پرونده جدید'}</h1><p className="mt-2 text-sm leading-7 text-[var(--ew-muted)]">فرم مطابق ستون‌های فایل اکسل؛ ردیف، مانده و روزهای بدون اقدام به صورت خودکار محاسبه می‌شوند.</p></header>
-    {loading?<div className="employee-empty">در حال بارگذاری...</div>:<form onSubmit={submit} className="space-y-5">{error&&<div role="alert" className="employee-alert">{error}</div>}{sections.map(section=><section key={section} className="employee-form-section"><h2 className="mb-6 border-b border-[var(--ew-line)] pb-3 text-base font-black text-[var(--ew-text)]">{section}</h2><div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{fields.filter(f=>f.section===section).map(field=>{const value=form[field.key]||'';return <label key={field.key} className={field.type==='textarea'?'sm:col-span-2 xl:col-span-3':'block'}><span className="employee-label">{field.label}{field.required&&' *'}</span>{field.type==='textarea'?<textarea rows={3} disabled={readOnly} className="employee-textarea mt-2" value={value} onChange={e=>update(field.key,e.target.value)}/>:field.type==='select'?<select disabled={readOnly} className="employee-select mt-2" value={value} onChange={e=>update(field.key,e.target.value)}><option value="">انتخاب نشده</option>{(field.group==='people'?people:lookups.filter(l=>l.group_key===field.group)).map(o=><option key={o.id} value={o.id}>{o.title||o.name}</option>)}</select>:<input disabled={readOnly} className="employee-input mt-2" type={field.type==='number'?'text':'text'} inputMode={field.type==='number'?'decimal':'text'} required={field.required} value={value} onChange={e=>update(field.key,e.target.value)} dir={field.type==='number'?'ltr':undefined}/>} {field.help&&<small className="employee-help">{field.help}</small>}</label>;})}</div>{section==='وضعیت و پیگیری'&&<div className="employee-mini-card mt-5 text-xs text-[var(--ew-muted)]">روزهای بدون اقدام: {String(existing?.days_without_action??'پس از ثبت و درج تاریخ آخرین اقدام محاسبه می‌شود')}</div>}{section==='اطلاعات مالی'&&<div className="employee-mini-card mt-5 text-sm font-bold text-[var(--ew-text)]">مانده محاسبه‌شده: {Number.isFinite(balance)?balance.toLocaleString('fa-IR'):'—'}</div>}</section>)}<div className="flex flex-wrap justify-end gap-3"><Link to="/employee/cases" className="employee-soft-button">بازگشت</Link>{!readOnly && <button disabled={saving} className="employee-button">{saving?'در حال ذخیره...':id?'ذخیره تغییرات':'ثبت پرونده'}</button>}</div></form>}
+  return <DashboardLayout><div dir="rtl" className="space-y-5">
+    <header className="rounded-[2rem] border border-emerald-100 bg-gradient-to-l from-emerald-50 to-white p-6"><h1 className="text-xl font-black text-slate-900">{id?'ویرایش پرونده من':'ثبت پرونده جدید'}</h1><p className="mt-2 text-sm leading-7 text-slate-600">فرم مطابق ستون‌های فایل اکسل؛ ردیف، مانده و روزهای بدون اقدام به صورت خودکار محاسبه می‌شوند.</p></header>
+    {loading?<p>در حال بارگذاری...</p>:<form onSubmit={submit} className="space-y-5">
+      {error&&<div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{error}</div>}
+      {sections.map(section=><section key={section} className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-7"><h2 className="mb-6 border-b border-slate-100 pb-3 text-base font-black text-slate-900">{section}</h2><div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{fields.filter(f=>f.section===section).map(field=>{
+        const value=form[field.key]||'';
+        const css="mt-2 block w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100";
+        return <label key={field.key} className={field.type==='textarea'?'sm:col-span-2 xl:col-span-3':'block'}><span className="text-sm font-semibold text-slate-700">{field.label}{field.required&&' *'}</span>
+        {field.type==='textarea'?<textarea rows={3} className={css} value={value} onChange={e=>update(field.key,e.target.value)}/>:field.type==='select'?<select className={css} value={value} onChange={e=>update(field.key,e.target.value)}><option value="">انتخاب نشده</option>{(field.group==='people'?people:lookups.filter(l=>l.group_key===field.group)).map(o=><option key={o.id} value={o.id}>{o.title||o.name}</option>)}</select>:<input className={css} type={field.type==='number'?'text':'text'} inputMode={field.type==='number'?'decimal':numericKeys.has(field.key)?'numeric':dateKeys.has(field.key)?'numeric':'text'} maxLength={field.key==='national_code'||field.key==='postal_code'?10:undefined} required={field.required} value={value} onChange={e=>update(field.key,e.target.value)} dir={field.type==='number'?'ltr':undefined}/>} {field.help&&<small className="mt-1 block text-xs text-slate-400">{field.help}</small>}</label>;
+      })}</div>{section==='وضعیت و پیگیری'&&<p className="mt-5 text-xs text-slate-500">روزهای بدون اقدام: {String(existing?.days_without_action??'پس از ثبت و درج تاریخ آخرین اقدام محاسبه می‌شود')}</p>}{section==='اطلاعات مالی'&&<p className="mt-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-900">مانده محاسبه‌شده: {Number.isFinite(balance)?balance.toLocaleString('fa-IR'):'—'}</p>}</section>)}
+      <div className="flex flex-wrap justify-end gap-3"><Link to="/employee/cases" className="rounded-xl bg-slate-100 px-5 py-3 text-sm font-bold text-slate-700">بازگشت</Link><button disabled={saving} className="rounded-xl bg-emerald-700 px-7 py-3 text-sm font-bold text-white disabled:opacity-50">{saving?'در حال ذخیره...':id?'ذخیره تغییرات':'ثبت پرونده'}</button></div>
+    </form>}
   </div></DashboardLayout>;
 }

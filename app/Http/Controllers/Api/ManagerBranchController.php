@@ -102,7 +102,7 @@ class ManagerBranchController extends Controller
             'recent_cases' => SurveyCase::where('branch_id', $branch->id)->latest('id')->limit(12)
                 ->get(['id', 'case_number', 'owner_full_name', 'created_by', 'created_at']),
             'recent_activities' => ActivityLog::where('branch_id', $branch->id)->with('user:id,name,role')
-                ->latest('id')->limit(25)->get(['id', 'branch_id', 'user_id', 'action', 'description', 'created_at']),
+                ->latest('id')->limit(25)->get(['id', 'branch_id', 'user_id', 'action', 'description', 'old_values', 'created_at'])->each(fn($log) => $log->makeHidden('old_values')),
         ]);
     }
 

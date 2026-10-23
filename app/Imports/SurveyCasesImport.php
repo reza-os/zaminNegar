@@ -7,6 +7,8 @@ use App\Models\ImportError;
 use App\Models\LookupItem;
 use App\Models\SurveyCase;
 use App\Models\User;
+use App\Services\CaseArchiveService;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -176,7 +178,10 @@ class SurveyCasesImport implements ToCollection, WithStartRow, WithChunkReading
                 if (SurveyCase::withTrashed()->where('case_number', $caseNumber)->exists()) {
                     throw new \RuntimeException('شماره پرونده قبلاً ثبت شده (حتی اگر حذف نرم شده باشد)؛ ردیف تکراری ذخیره نشد.');
                 }
-                SurveyCase::create($payload);
+                DB::transaction(function () use ($payload) {
+                    $case = SurveyCase::create($payload);
+                    app(CaseArchiveService::class)->capture($case, 'excel', $this->importBatch);
+                });
 
                 if ($this->retryRowSet !== null) {
                     ImportError::query()->where('import_batch_id', $this->importBatch->id)

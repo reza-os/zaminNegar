@@ -48,6 +48,9 @@ export default function ImportExcelPage() {
   const [reportingId, setReportingId] = useState<number | null>(null);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [revisionFile,setRevisionFile]=useState<File|null>(null);
+  const [revisionPreview,setRevisionPreview]=useState<{token:string;counts:{updated:number;new:number;unchanged:number;skipped:number};warnings:string[];note:string}|null>(null);
+  const [revising,setRevising]=useState(false);
 
   const loadHistory = useCallback(async () => {
     try {
@@ -93,6 +96,22 @@ export default function ImportExcelPage() {
     } finally { setLoading(false); }
   }
 
+  async function previewRevision() {
+    if(!revisionFile || revising)return;
+    setRevising(true);setError('');setNotice('');setRevisionPreview(null);
+    const form=new FormData();form.append('file',revisionFile);
+    try{const {data}=await api.post('/imports/revisions/preview',form);setRevisionPreview(data)}
+    catch(err){setError(errorMessage(err))}finally{setRevising(false)}
+  }
+  async function applyRevision(){
+    if(!revisionPreview||revising)return;
+    const {counts}=revisionPreview;
+    if(!window.confirm(`تغییر ${fa(counts.updated)} پرونده و ثبت ${fa(counts.new)} پرونده جدید تأیید شود؟ آرشیو نسخه اولیه تغییر نمی‌کند.`))return;
+    setRevising(true);setError('');setNotice('');
+    try{const {data}=await api.post('/imports/revisions/apply',{token:revisionPreview.token});setNotice(data.message);setRevisionPreview(null);setRevisionFile(null);await loadHistory()}
+    catch(err){setError(errorMessage(err))}finally{setRevising(false)}
+  }
+
   async function retryFailed(batch: Batch) {
     if (ownId !== batch.user_id) return;
     if (!window.confirm(`فقط ${fa(batch.failed_rows)} ردیف خطادار فایل «${batch.original_file_name}» دوباره بررسی شوند؟ پرونده‌های موفق قبلی تغییر نمی‌کنند.`)) return;
@@ -124,9 +143,9 @@ export default function ImportExcelPage() {
   }
 
   async function deleteBatch(batch: Batch) {
-    if (!window.confirm(`تمام پرونده‌های ثبت‌شده توسط فایل «${batch.original_file_name}» حذف شوند؟ این عمل در فهرست‌ها برگشت‌پذیر نیست.`)) return;
+    if (!window.confirm(`گروه «${batch.original_file_name}» و پرونده‌های عملیاتی آن حذف شوند؟ اطلاعات دائمی در آرشیو حفظ می‌شوند. اگر گروه فاکتور یا سند پیوست داشته باشد، حذف انجام نخواهد شد.`)) return;
     setError('');
-    try { await api.delete(`/imports/${batch.id}`); await loadHistory(); }
+    try { const { data } = await api.delete<{ message: string }>(`/imports/${batch.id}`); setNotice(data.message); await loadHistory(); }
     catch (err) { setError(errorMessage(err)); }
   }
 
@@ -140,11 +159,17 @@ export default function ImportExcelPage() {
         <div className="employee-badge-soft mb-3">اکسل و ورود گروهی</div>
         <h1 className="text-2xl font-black text-[var(--ew-text)]">بارگذاری هوشمند پرونده‌ها از اکسل</h1>
         <p className="mt-2 max-w-3xl text-sm leading-7 text-[var(--ew-muted)]">
-          فایل تکراری قبل از پردازش شناسایی می‌شود؛ فقط با تأیید شما دوباره پردازش خواهد شد.
+          فایل تکراری فقط در میان گروه‌های عملیاتی فعال شناسایی می‌شود. پس از حذف سخت گروه، می‌توانید همان اکسل را دوباره وارد کنید؛ سابقه دائمی آن همچنان باقی می‌ماند.
           برای گروه‌های قبلی می‌توانید فقط ردیف‌های ناموفق را مجدداً بررسی یا گزارش خطاهایشان را دانلود کنید.
         </p>
       </section>
 
+      <section className="employee-panel space-y-4">
+        <h2 className="text-lg font-black text-[var(--ew-text)]">بارگذاری نسخه به‌روزشده اکسل (با پیش‌نمایش)</h2>
+        <p className="text-sm leading-7 text-[var(--ew-muted)]">ابتدا تغییرات شناسایی می‌شوند؛ فقط بعد از تأیید اعمال می‌شوند. پرونده‌های دستی و همکار، یا ردیف‌های بدون شماره پرونده صریح، خودکار تغییر نمی‌کنند. سلول خالی مقدار قدیمی را پاک نمی‌کند.</p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center"><input type="file" accept=".xlsx,.xls" aria-label="اکسل به‌روزشده" onChange={e=>{setRevisionFile(e.target.files?.[0]||null);setRevisionPreview(null)}} className="min-w-0 flex-1 text-sm"/><button type="button" className="employee-secondary-button" disabled={!revisionFile||revising} onClick={()=>void previewRevision()}>{revising?'در حال بررسی...':'پیش‌نمایش تغییرات'}</button></div>
+        {revisionPreview&&<div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm leading-7"><div className="font-black">{fa(revisionPreview.counts.updated)} پرونده تغییرکرده، {fa(revisionPreview.counts.new)} پرونده جدید، {fa(revisionPreview.counts.unchanged)} بدون تغییر، {fa(revisionPreview.counts.skipped)} ردشده</div><p className="my-2">{revisionPreview.note}</p>{revisionPreview.warnings.length>0&&<details><summary className="cursor-pointer font-semibold">هشدارهای تطبیق ({fa(revisionPreview.warnings.length)} مورد نمایش داده‌شده)</summary><div className="mt-2 max-h-52 space-y-1 overflow-auto text-xs">{revisionPreview.warnings.map((v,i)=><p key={i}>{v}</p>)}</div></details>}<button type="button" className="employee-button mt-3" disabled={revising||revisionPreview.counts.updated+revisionPreview.counts.new===0} onClick={()=>void applyRevision()}>تأیید و اعمال تغییرات</button></div>}
+      </section>
       <section className="employee-panel">
         <div className="rounded-[1.6rem] border border-dashed border-[#e6bd90] bg-white/60 p-6 text-center">
           <div className="mx-auto grid h-16 w-16 place-items-center rounded-3xl bg-[#fff0de] text-[#b75a39]"><UploadCloud size={28} /></div>

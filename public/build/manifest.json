@@ -12,12 +12,12 @@
     "src": "node_modules/@fontsource-variable/vazirmatn/files/vazirmatn-latin-wght-normal.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-DNbtgrKb.css",
+    "file": "assets/app-BFSqdzxk.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/app.tsx": {
-    "file": "assets/app-Bjh0ysqQ.js",
+    "file": "assets/app-BJdJSchg.js",
     "name": "app",
     "src": "resources/js/app.tsx",
     "isEntry": true,
@@ -26,7 +26,7 @@
       "resources/js/components/ui/argent-loop-infinite-slider.tsx"
     ],
     "css": [
-      "assets/app-DU_DEswj.css"
+      "assets/app-DdeR-z_E.css"
     ],
     "assets": [
       "assets/vazirmatn-arabic-wght-normal-Cafbb7Zc.woff2",
@@ -35,7 +35,7 @@
     ]
   },
   "resources/js/components/ui/argent-loop-infinite-slider.tsx": {
-    "file": "assets/argent-loop-infinite-slider-COtd-pKE.js",
+    "file": "assets/argent-loop-infinite-slider-BWJ2Lw3J.js",
     "name": "argent-loop-infinite-slider",
     "src": "resources/js/components/ui/argent-loop-infinite-slider.tsx",
     "isDynamicEntry": true,
@@ -47,7 +47,7 @@
     ]
   },
   "resources/js/components/ui/feature-carousel.tsx": {
-    "file": "assets/feature-carousel-HI6CjZc-.js",
+    "file": "assets/feature-carousel-DR24dcdj.js",
     "name": "feature-carousel",
     "src": "resources/js/components/ui/feature-carousel.tsx",
     "isDynamicEntry": true,

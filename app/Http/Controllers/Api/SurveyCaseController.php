@@ -11,6 +11,8 @@ use App\Support\Visibility;
 use App\Support\CaseFilters;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use App\Services\CaseArchiveService;
+use Illuminate\Support\Facades\DB;
 
 class SurveyCaseController extends Controller
 {
@@ -53,13 +55,17 @@ class SurveyCaseController extends Controller
         $data['created_by'] = $request->user()->id;
         $data['updated_by'] = $request->user()->id;
 
-        $case = SurveyCase::create($data);
+        $case = DB::transaction(function () use ($data) {
+            $case = SurveyCase::create($data);
+            app(CaseArchiveService::class)->capture($case, 'manual');
+            return $case;
+        });
 
         ActivityLog::create([
             'user_id' => $request->user()->id,
             'branch_id' => $case->branch_id,
             'action' => 'case_created',
-            'description' => 'ثبت پرونده جدید: ' . $case->case_number,
+            'description' => 'ثبت پرونده «' . $case->owner_full_name . '» (شماره ' . $case->case_number . ')',
             'subject_type' => SurveyCase::class,
             'subject_id' => $case->id,
             'new_values' => $case->toArray(),
@@ -91,13 +97,16 @@ class SurveyCaseController extends Controller
         $data = $this->validatedData($request, $surveyCase->id);
         $data['updated_by'] = $request->user()->id;
 
-        $surveyCase->update($data);
+        DB::transaction(function () use ($surveyCase, $data) {
+            $surveyCase->update($data);
+            app(CaseArchiveService::class)->capture($surveyCase);
+        });
 
         ActivityLog::create([
             'user_id' => $request->user()->id,
             'branch_id' => $surveyCase->branch_id,
             'action' => 'case_updated',
-            'description' => 'ویرایش پرونده: ' . $surveyCase->case_number,
+            'description' => 'ویرایش پرونده «' . $surveyCase->owner_full_name . '» (شماره ' . $surveyCase->case_number . ')',
             'subject_type' => SurveyCase::class,
             'subject_id' => $surveyCase->id,
             'old_values' => $oldValues,
@@ -114,10 +123,12 @@ class SurveyCaseController extends Controller
         abort_unless($request->user()->isEmployee(), 403);
         $this->authorizeCase($request, $surveyCase);
         abort_unless((int) $surveyCase->created_by === (int) $request->user()->id, 403, 'حذف پرونده مشترک مجاز نیست.');
-        $surveyCase->delete();
+        DB::transaction(function () use ($surveyCase) {
+            app(CaseArchiveService::class)->removeWorkCase($surveyCase);
+        });
         ActivityLog::create([
             'user_id' => $request->user()->id, 'branch_id' => $surveyCase->branch_id,
-            'action' => 'case_deleted', 'description' => 'حذف پرونده: ' . $surveyCase->case_number,
+            'action' => 'case_deleted', 'description' => 'حذف پرونده «' . $surveyCase->owner_full_name . '» (شماره ' . $surveyCase->case_number . ')',
             'subject_type' => SurveyCase::class, 'subject_id' => $surveyCase->id,
             'old_values' => $surveyCase->toArray(), 'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
@@ -136,17 +147,17 @@ class SurveyCaseController extends Controller
             'case_number' => ['required','string','max:100', Rule::unique('survey_cases','case_number')->ignore($caseId)->whereNull('deleted_at')],
             'activity_state' => ['sometimes','nullable',Rule::in(['active','inactive'])],
             'registration_state' => ['sometimes','nullable',Rule::in(['registered','unregistered'])],
-            'owner_full_name' => ['required','string','max:255'],
+            'owner_full_name' => ['required','string','max:255','regex:/^[\p{L}\p{M}\s\x{200C}\-]+$/u'],
             'case_date_jalali' => ['nullable','string','max:30'],
             'birth_date_jalali' => ['nullable','string','max:30'],
             'last_action_at_jalali' => ['nullable','string','max:30'],
             'next_action_at_jalali' => ['nullable','string','max:30'],
-            'father_name' => ['nullable','string','max:255'],
-            'national_code' => ['nullable','string','max:20'],
+            'father_name' => ['nullable','string','max:255','regex:/^[\p{L}\p{M}\s\x{200C}\-]+$/u'],
+            'national_code' => ['nullable','regex:/^[0-9۰-۹٠-٩]{10}$/u'],
             'village_name' => ['nullable','string','max:255'],
             'surveyor_name_raw' => ['nullable','string','max:255'],
-            'phone' => ['nullable','string','max:30'],
-            'postal_code' => ['nullable','string','max:30'],
+            'phone' => ['nullable','regex:/^[0-9۰-۹٠-٩+\- ]{7,18}$/u'],
+            'postal_code' => ['nullable','regex:/^[0-9۰-۹٠-٩]{10}$/u'],
             'file_location' => ['nullable','string','max:255'],
             'description' => ['nullable','string'],
             'status_id' => ['nullable',Rule::exists('lookup_items','id')->where('group_key','case_status')],

@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DailyMessageController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ImportController;
+use App\Http\Controllers\Api\ExcelRevisionController;
 use App\Http\Controllers\Api\LookupController;
 use App\Http\Controllers\Api\ManagerBranchController;
 use App\Http\Controllers\Api\ManagerEmployeeController;
@@ -30,6 +31,9 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::middleware('role:manager')->prefix('manager')->group(function () {
         Route::get('/dashboard', [ManagerAnalyticsController::class, 'overview']);
         Route::get('/finance', [ManagerFinanceController::class, 'overview']);
+        Route::get('/finance/case-options', [ManagerFinanceController::class, 'invoiceCaseOptions']);
+        Route::get('/finance/expenses/template', [ManagerFinanceController::class, 'expenseTemplate']);
+        Route::post('/finance/expenses/import', [ManagerFinanceController::class, 'importExpenses'])->middleware('throttle:5,1');
         Route::post('/finance/invoices', [ManagerFinanceController::class, 'addInvoice']);
         Route::post('/finance/expenses', [ManagerFinanceController::class, 'addExpense']);
         Route::put('/finance/targets', [ManagerFinanceController::class, 'setTarget']);
@@ -62,6 +66,8 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::put('/survey-cases/{surveyCase}', [SurveyCaseController::class, 'update']);
         Route::patch('/survey-cases/{surveyCase}', [SurveyCaseController::class, 'update']);
         Route::post('/imports', [ImportController::class, 'store']);
+        Route::post('/imports/revisions/preview', [ExcelRevisionController::class, 'preview'])->middleware('throttle:5,1');
+        Route::post('/imports/revisions/apply', [ExcelRevisionController::class, 'apply'])->middleware('throttle:5,1');
         Route::post('/imports/{importBatch}/retry-failed', [ImportController::class, 'retryFailed'])->middleware('throttle:5,1');
         Route::get('/imports', [ImportController::class, 'index']);
         Route::get('/imports/{importBatch}/cases', [ImportController::class, 'cases']);

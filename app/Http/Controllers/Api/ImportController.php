@@ -14,6 +14,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\Models\SurveyCase;
+use App\Services\CaseArchiveService;
+use App\Services\ImportWorkDeletionService;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -121,6 +123,8 @@ class ImportController extends Controller
         $this->allowLargeImport();
 
         try {
+            // Preserve original bytes outside the operational import area before parsing.
+            app(CaseArchiveService::class)->rememberFile($batch);
             Excel::import(new SurveyCasesImport($batch, $user), Storage::path($path));
             $this->finalizeCounters($batch);
 
@@ -256,35 +260,28 @@ class ImportController extends Controller
         return response()->json($paginator);
     }
 
-    public function destroy(Request $request, ImportBatch $importBatch)
+    public function destroy(Request $request, ImportBatch $importBatch, ImportWorkDeletionService $deletion)
     {
-        abort_unless($request->user()->isEmployee() && (int)$importBatch->user_id === (int)$request->user()->id
-            && (int)$importBatch->branch_id === (int)$request->user()->branch_id, 404);
-        $deleted = DB::transaction(function () use ($request, $importBatch) {
-            $batch = ImportBatch::query()->whereKey($importBatch->id)->lockForUpdate()->firstOrFail();
-            abort_if($batch->status === 'processing', 409, 'پردازش فایل هنوز پایان نیافته است.');
-            $deleted = SurveyCase::query()->where('import_batch_id', $batch->id)
-                ->where('created_by', $request->user()->id)->count();
-            SurveyCase::query()->where('import_batch_id', $batch->id)
-                ->where('created_by', $request->user()->id)->delete();
-            $batch->delete();
-            ActivityLog::create([
-                'user_id'=>$request->user()->id,'branch_id'=>$batch->branch_id,
-                'action'=>'excel_batch_deleted',
-                'description'=>'حذف گروه اکسل: '.$batch->original_file_name.' ('.$deleted.' پرونده)',
-                'subject_type'=>ImportBatch::class,'subject_id'=>$batch->id,
-                'ip_address'=>$request->ip(),'user_agent'=>$request->userAgent(),
-            ]);
-            return $deleted;
-        });
-        // Purge the original uploaded spreadsheet from disk after DB soft-deletion.
-        // Deleted case records remain soft-deleted for auditing.
+        abort_unless($request->user()->isEmployee()
+            && (int) $importBatch->user_id === (int) $request->user()->id
+            && (int) $importBatch->branch_id === (int) $request->user()->branch_id, 404);
+
+        $deleted = $deletion->deleteBatch($importBatch);
+        // DB transaction already committed. Source file no longer belongs to working records.
         if ($importBatch->file_name && Storage::exists($importBatch->file_name)) {
-            if (!Storage::delete($importBatch->file_name)) {
-                Log::warning('Import source file could not be deleted', ['batch_id'=>$importBatch->id]);
-            }
+            Storage::delete($importBatch->file_name);
         }
-        return response()->json(['message'=>'گروه اکسل از فهرست حذف شد؛ رکوردهای پرونده نرم‌حذف شدند.','deleted_cases'=>$deleted]);
+        ActivityLog::create([
+            'user_id' => $request->user()->id, 'branch_id' => $importBatch->branch_id,
+            'action' => 'excel_batch_deleted',
+            'description' => 'حذف سخت گروه عملیاتی: '.$importBatch->original_file_name.' ('.$deleted.' پرونده). نسخه دائمی محفوظ است.',
+            'subject_type' => ImportBatch::class, 'subject_id' => $importBatch->id,
+            'ip_address' => $request->ip(), 'user_agent' => $request->userAgent(),
+        ]);
+        return response()->json([
+            'message' => 'گروه و پرونده‌های عملیاتی آن حذف شدند. نسخه آرشیوی بدون تغییر باقی ماند.',
+            'deleted_cases' => $deleted,
+        ]);
     }
 
     public function show(Request $request, ImportBatch $importBatch)

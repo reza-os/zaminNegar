@@ -9,17 +9,27 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+use App\Support\PersianCalendar;
+use App\Exports\ExpenseImportTemplate;
+use App\Services\ExpenseExcelImportService;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ManagerFinanceController extends Controller
 {
     /** All managers may view company-wide aggregates; employees never enter this route group. */
     public function overview(Request $request)
     {
-        $input = $request->validate(['period'=>['nullable','date_format:Y-m'], 'branch_id'=>['nullable','integer','exists:branches,id']]);
+        $input = $request->validate(['period'=>['nullable','date_format:Y-m'], 'branch_id'=>['nullable','integer','exists:branches,id'], 'period_jalali'=>['nullable','string','max:10']]);
         $period = $input['period'] ?? now()->format('Y-m');
         $branchId = $input['branch_id'] ?? null;
-        $from = $period . '-01';
-        $to = date('Y-m-d', strtotime($from . ' +1 month'));
+        $jalaliPeriod = $input['period_jalali'] ?? null;
+        if ($jalaliPeriod) {
+            [$from,$to,$jalaliPeriod] = PersianCalendar::month($jalaliPeriod);
+        } else {
+            $from = $period . '-01';
+            $to = date('Y-m-d', strtotime($from . ' +1 month'));
+        }
 
         // Summary of Excel-derived contract and receipt columns (cumulative amounts).
         $cases = SurveyCase::query()->whereNotNull('branch_id');
@@ -34,7 +44,7 @@ class ManagerFinanceController extends Controller
         $salesByEmployee = (clone $cases)
             ->select('created_by')->selectRaw('SUM(contract_amount) as sales_amount, COUNT(*) as case_count')
             ->groupBy('created_by')->orderByDesc('sales_amount')->limit(20)->get();
-        $userNames = User::withTrashed()->whereIn('id',$salesByEmployee->pluck('created_by')->filter())->pluck('name','id');
+        $userNames = User::whereIn('id',$salesByEmployee->pluck('created_by')->filter())->pluck('name','id');
         $salesByEmployee = $salesByEmployee->map(fn($r)=>['employee_id'=>$r->created_by,
             'name'=>$userNames[$r->created_by] ?? 'کارمند غیرفعال',
             'sales_amount'=>(float)$r->sales_amount,'case_count'=>(int)$r->case_count]);
@@ -62,10 +72,12 @@ class ManagerFinanceController extends Controller
         $monthlyExpenses = (float)(clone $expenses)->where('spent_at','>=',$from)->where('spent_at','<',$to)->sum('amount');
         $categories = (clone $expenses)->select('category')->selectRaw('SUM(amount) as total')
             ->groupBy('category')->orderByDesc('total')->limit(30)->get();
-        $target = $branchId ? null : DB::table('financial_targets')->where('period',$period)->first();
+        $target = $branchId ? null : ($jalaliPeriod
+            ? DB::table('financial_targets_jalali')->where('period_jalali',$jalaliPeriod)->first()
+            : DB::table('financial_targets')->where('period',$period)->first());
 
         return response()->json([
-            'period'=>$period,'branch_id'=>$branchId,
+            'period'=>$period,'period_jalali'=>$jalaliPeriod,'branch_id'=>$branchId,
             'contracts'=>['total'=>$contracts, 'received'=>$received, 'remaining'=>$remaining,
                 'collection_percent'=>$contracts>0 ? round($received/$contracts*100,2):null,
                 'monthly_sales'=>$monthlySales,'monthly_collections'=>$monthlyCollections,
@@ -98,16 +110,64 @@ class ManagerFinanceController extends Controller
         ]);
     }
 
+    /** Managers may only invoice live cases; archived rows cannot be billed by operational id. */
+    public function invoiceCaseOptions(Request $request)
+    {
+        $data=$request->validate(['search'=>['required','string','min:2','max:80']]);
+        $needle=trim($data['search']);
+        $items=SurveyCase::query()->whereNotNull('branch_id')
+            ->where(fn($q)=>$q->where('case_number','like','%'.$needle.'%')
+                ->orWhere('owner_full_name','like','%'.$needle.'%'))
+            ->orderByDesc('id')->limit(20)->get(['id','case_number','owner_full_name','branch_id']);
+        return response()->json(['data'=>$items]);
+    }
+
+    public function expenseTemplate()
+    {
+        return Excel::download(new ExpenseImportTemplate(), 'zaminnegar-expenses-template.xlsx');
+    }
+
+    public function importExpenses(Request $request, ExpenseExcelImportService $service)
+    {
+        $request->validate(['file'=>['required','file','mimes:xlsx,xls','max:10240']]);
+        $result=$service->import($request->file('file'), (int)$request->user()->id);
+        ActivityLog::create([
+            'user_id'=>$request->user()->id,'branch_id'=>null,
+            'action'=>'financial_expenses_imported',
+            'description'=>'ثبت گروهی '. $result['imported_rows'].' هزینه از اکسل',
+            'subject_type'=>'finance_expense_import','subject_id'=>$result['import_id'],
+            'ip_address'=>$request->ip(),'user_agent'=>$request->userAgent(),
+        ]);
+        return response()->json(['message'=>'هزینه‌ها ثبت شدند.',...$result],201);
+    }
+
     public function addInvoice(Request $request)
     {
-        $input = $request->validate([
-            'case_number'=>['required','string','max:100'],
+        $input=$request->validate([
+            'case_id'=>['nullable','integer'],
+            'case_number'=>['nullable','string','max:100'],
             'number'=>['required','string','max:100','unique:financial_invoices,number'],
-            'issued_at'=>['required','date_format:Y-m-d'], 'due_at'=>['nullable','date_format:Y-m-d','after_or_equal:issued_at'],
-            'amount'=>['required','numeric','min:0.01'], 'paid_amount'=>['required','numeric','min:0','lte:amount'],
+            'issued_at_jalali'=>['required','string','max:10'],
+            'due_at_jalali'=>['nullable','string','max:10'],
+            'amount'=>['required','numeric','min:0.01'],
+            'paid_amount'=>['required','numeric','min:0','lte:amount'],
         ]);
-        $case = SurveyCase::where('case_number',$input['case_number'])->whereNotNull('branch_id')->firstOrFail();
-        unset($input['case_number']);
+        if (empty($input['case_id']) && empty($input['case_number'])) {
+            throw ValidationException::withMessages(['case_id'=>'ابتدا یک پرونده فعال از فهرست انتخاب کنید.']);
+        }
+        $query=SurveyCase::query()->whereNotNull('branch_id');
+        $case=!empty($input['case_id'])
+            ? $query->whereKey($input['case_id'])->first()
+            : $query->where('case_number',trim($input['case_number']))->first();
+        if (!$case) {
+            throw ValidationException::withMessages(['case_id'=>'پرونده فعال یافت نشد؛ ممکن است قبلاً از جدول عملیاتی حذف شده باشد. ابتدا آن را بازیابی کنید.']);
+        }
+        $input['issued_at']=PersianCalendar::day($input['issued_at_jalali'],'issued_at_jalali');
+        $input['due_at']=PersianCalendar::day($input['due_at_jalali']??null,'due_at_jalali');
+        if ($input['due_at'] && $input['due_at'] < $input['issued_at']) {
+            throw ValidationException::withMessages(['due_at_jalali'=>'سررسید باید برابر یا بعد از تاریخ صدور باشد.']);
+        }
+        unset($input['case_id'],$input['case_number'],$input['issued_at_jalali'],$input['due_at_jalali']);
         $id = DB::table('financial_invoices')->insertGetId([...$input,
             'survey_case_id'=>$case->id,'created_by'=>$request->user()->id,'created_at'=>now(),'updated_at'=>now()]);
         ActivityLog::create([
@@ -127,8 +187,10 @@ class ManagerFinanceController extends Controller
             'type'=>['required',Rule::in(['direct','fixed'])],
             'description'=>['nullable','string','max:500'],
             'amount'=>['required','numeric','min:0.01'],
-            'spent_at'=>['required','date_format:Y-m-d'],
+            'spent_at_jalali'=>['required','string','max:10'],
         ]);
+        $input['spent_at']=PersianCalendar::day($input['spent_at_jalali'],'spent_at_jalali');
+        unset($input['spent_at_jalali']);
         $id = DB::table('financial_expenses')->insertGetId([...$input,
             'created_by'=>$request->user()->id,'created_at'=>now(),'updated_at'=>now()]);
         ActivityLog::create([
@@ -143,12 +205,13 @@ class ManagerFinanceController extends Controller
     public function setTarget(Request $request)
     {
         $input = $request->validate([
-            'period'=>['required','date_format:Y-m'],
+            'period_jalali'=>['required','string','max:10'],
             'sales_target'=>['required','numeric','min:0'],
             'collection_target'=>['required','numeric','min:0'],
             'expense_target'=>['required','numeric','min:0'],
         ]);
-        DB::table('financial_targets')->updateOrInsert(['period'=>$input['period']], [
+        [$_start,$_end,$periodJalali]=PersianCalendar::month($input['period_jalali']);
+        DB::table('financial_targets_jalali')->updateOrInsert(['period_jalali'=>$periodJalali], [
             'sales_target'=>$input['sales_target'],
             'collection_target'=>$input['collection_target'],
             'expense_target'=>$input['expense_target'],
