@@ -21,7 +21,7 @@ const menus = {
     { to: '/employee/cases', label: 'پرونده‌های من', icon: ListChecks },
   ],
 };
-const roleLabel: Record<string,string> = { admin:'ادمین اصلی', manager:'منیجر', employee:'کارمند', surveyor:'نقشه‌بردار' };
+const roleLabel: Record<string,string> = { admin:'ادمین اصلی', manager:'منیجر', employee:'کارمند شرکت', surveyor:'نقشه‌بردار' };
 const storageKey = 'zamin-sidebar-collapsed';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {

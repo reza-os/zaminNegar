@@ -30,7 +30,7 @@ export default function ManagerDashboardPage() {
         <div>
           <span className="mb-3 inline-flex items-center gap-2 border-2 border-slate-950 bg-lime-300 px-3 py-1 text-xs font-black"><LayoutDashboard size={15}/> مدیریت شرکت زمین‌نگار</span>
           <h1 className="text-3xl font-black sm:text-4xl">داشبورد منیجر</h1>
-          <p className="mt-3 text-xs leading-7 text-slate-600 sm:text-sm">نمای کلی پرونده‌ها، وضعیت‌ها، کارکنان و عملکرد تمامی شعبه‌های شرکت</p>
+          <p className="mt-3 text-xs leading-7 text-slate-600 sm:text-sm">نمای کلی پرونده‌ها، وضعیت‌ها، کارمند و عملکرد تمامی شعبه‌های شرکت</p>
         </div>
         <button type="button" onClick={() => setRefresh(c => c+1)} disabled={loading} className="flex items-center gap-2 border-[3px] border-slate-950 bg-white px-4 py-2 text-xs font-black shadow-[4px_4px_0_0_#0f172a] transition active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-60"><RefreshCw size={16}/> به‌روزرسانی آمار</button>
       </header>

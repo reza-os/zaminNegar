@@ -125,7 +125,7 @@ export default function ManagerEmployeesPage() {
                 <span className="warm-eyebrow">مدیریت منابع انسانی · زمین‌نگار</span>
               </div>
               <h1 id="employees-page-title">کارمندان شرکت</h1>
-              <p>ایجاد و مدیریت حساب کارکنان، جست‌وجوی سریع و اختصاص هر کارمند به شعبه.</p>
+              <p>ایجاد و مدیریت حساب کارمندان جست‌وجوی سریع و اختصاص هر کارمند به شعبه.</p>
             </div>
             <span className="warm-hero-chip"><Building2 size={16} /> دسترسی به تمام شعب شرکت</span>
           </div>
@@ -162,7 +162,7 @@ export default function ManagerEmployeesPage() {
           <section className="warm-panel overflow-hidden">
             <div className="warm-panel-header">
               <div>
-                <h2 className="warm-panel-title"><span className="warm-panel-icon"><UsersRound size={19}/></span> فهرست کارکنان</h2>
+                <h2 className="warm-panel-title"><span className="warm-panel-icon"><UsersRound size={19}/></span> فهرست کارمندان</h2>
                 <p className="mt-2 text-xs leading-6 text-[#8b7063]">برای مشاهده اعضای هر شعبه، فیلتر و جست‌وجو را به‌کار ببر.</p>
               </div>
               <span className="warm-counter">{total.toLocaleString('fa-IR')} نفر</span>
@@ -171,7 +171,7 @@ export default function ManagerEmployeesPage() {
               <label className="relative block text-xs font-bold">
                 <span>جست‌وجوی کارمند</span>
                 <Search size={17} className="pointer-events-none absolute right-3 top-[40px] text-[#a16c51]"/>
-                <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="نام، ایمیل، نام کاربری یا موبایل" className={`${inputClass} mt-1 pr-10`} aria-label="جست‌وجوی کارکنان"/>
+                <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="نام، ایمیل، نام کاربری یا موبایل" className={`${inputClass} mt-1 pr-10`} aria-label="جست‌وجوی کارمندان"/>
               </label>
               <label className="block text-xs font-bold">فیلتر شعبه
                 <select className={`${inputClass} mt-1`} value={branchFilter} onChange={e=>setBranchFilter(e.target.value)}>
@@ -183,7 +183,7 @@ export default function ManagerEmployeesPage() {
             <ErrorNotice message={error}/>
             {success && <p role="status" className="warm-tint-message mb-4">{success}</p>}
 
-            <div className="warm-scroll" aria-label="فهرست اسکرول‌دار کارکنان">
+            <div className="warm-scroll" aria-label="فهرست اسکرول‌دار کارمندان">
               {loading ? <p className="p-6 text-center text-sm text-[#856c60]">در حال دریافت کارمندان...</p>
                 : employees.length === 0 ? <p className="p-6 text-center text-sm text-[#856c60]">کارمندی با این مشخصات پیدا نشد.</p>
                 : employees.map(employee => (

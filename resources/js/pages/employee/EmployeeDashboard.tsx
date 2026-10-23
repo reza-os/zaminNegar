@@ -208,7 +208,7 @@ export default function EmployeeDashboard() {
 
             <section aria-label="عملکرد شخصی من" className="rounded-[2rem] border border-slate-200 bg-white p-5 sm:p-6">
               <h2 className="mb-4 text-base font-black text-slate-900">گزارش عملکرد من</h2>
-              <p className="mb-5 text-xs leading-6 text-slate-500">این اعداد فقط مربوط به حساب خودتان هستند، نه سایر کارکنان شعبه.</p>
+              <p className="mb-5 text-xs leading-6 text-slate-500">این اعداد فقط مربوط به حساب خودتان هستند، نه سایر کارمند شعبه.</p>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
                 {[
                   ['پرونده‌های ثبت‌شده', data.my_performance.created_cases],
