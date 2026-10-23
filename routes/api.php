@@ -62,6 +62,7 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::put('/survey-cases/{surveyCase}', [SurveyCaseController::class, 'update']);
         Route::patch('/survey-cases/{surveyCase}', [SurveyCaseController::class, 'update']);
         Route::post('/imports', [ImportController::class, 'store']);
+        Route::post('/imports/{importBatch}/retry-failed', [ImportController::class, 'retryFailed'])->middleware('throttle:5,1');
         Route::get('/imports', [ImportController::class, 'index']);
         Route::get('/imports/{importBatch}/cases', [ImportController::class, 'cases']);
         Route::delete('/imports/{importBatch}', [ImportController::class, 'destroy']);
@@ -72,6 +73,7 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::get('/survey-cases/filter-options', [SurveyCaseController::class, 'filterOptions']);
         Route::get('/survey-cases', [SurveyCaseController::class, 'index']);
         Route::get('/survey-cases/{surveyCase}', [SurveyCaseController::class, 'show']);
+        Route::get('/imports/{importBatch}/error-report', [ImportController::class, 'errorReport']);
         Route::get('/imports/{importBatch}', [ImportController::class, 'show']);
     });
 });

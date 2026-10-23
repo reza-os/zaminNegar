@@ -9,7 +9,7 @@ class ImportBatch extends Model
 {
     use SoftDeletes;
     protected $fillable = [
-        'user_id', 'branch_id', 'file_name', 'original_file_name', 'total_rows', 'success_rows', 'failed_rows', 'status', 'started_at', 'finished_at',
+        'user_id', 'branch_id', 'file_name', 'original_file_name', 'file_hash', 'total_rows', 'success_rows', 'failed_rows', 'status', 'started_at', 'finished_at',
     ];
 
     protected function casts(): array

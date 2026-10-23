@@ -21,13 +21,34 @@ class SurveyCasesImport implements ToCollection, WithStartRow, WithChunkReading
     private int $failedRows = 0;
     private int $physicalRow = 1;
 
+    /** When populated, process only the original failing Excel row numbers. */
+    private ?array $retryRowSet = null;
+
+    /** Legacy batches may have generated IMP-{batchId}-{row} case numbers. */
+    private array $legacySameFileBatchIds = [];
+
     private array $lookupCache = [];
     private array $userCache = [];
 
     public function __construct(
         private ImportBatch $importBatch,
-        private User $user
-    ) {}
+        private User $user,
+        ?array $retryRowNumbers = null,
+    ) {
+        if ($this->importBatch->file_hash) {
+            // One query per import, not per row; handles hashes backfilled for old files.
+            $this->legacySameFileBatchIds = ImportBatch::withTrashed()
+                ->where('branch_id', $this->importBatch->branch_id)
+                ->where('file_hash', $this->importBatch->file_hash)
+                ->pluck('id')->map(fn ($id) => (int) $id)->all();
+        }
+        if ($retryRowNumbers !== null) {
+            $this->retryRowSet = array_fill_keys(array_map('intval', $retryRowNumbers), true);
+            $this->totalRows = (int) $this->importBatch->total_rows;
+            $this->successRows = (int) $this->importBatch->success_rows;
+            $this->failedRows = (int) $this->importBatch->failed_rows;
+        }
+    }
 
     public function startRow(): int
     {
@@ -45,17 +66,35 @@ class SurveyCasesImport implements ToCollection, WithStartRow, WithChunkReading
             $rowArray = array_values($row->toArray());
             $excelRowNumber = ++$this->physicalRow;
 
+            if ($this->retryRowSet !== null && !isset($this->retryRowSet[$excelRowNumber])) {
+                continue;
+            }
+
             if ($this->isEmptyBusinessRow($rowArray)) {
                 continue;
             }
 
-            $this->totalRows++;
+            if ($this->retryRowSet === null) {
+                $this->totalRows++;
+            }
 
             try {
                 $caseNumber = $this->text($rowArray[2] ?? null);
 
+                $hasExplicitNumber = $caseNumber !== '';
                 if ($caseNumber === '') {
-                    $caseNumber = 'IMP-' . $this->importBatch->id . '-' . $excelRowNumber;
+                    // Identical files in the same branch yield an identical fallback number.
+                    // A new import batch ID must NOT make the same row look new.
+                    $hash = $this->importBatch->file_hash;
+                    if (!$hash) {
+                        throw new \RuntimeException('اثر انگشت فایل یافت نشد؛ ابتدا نسخه اصلی فایل را بازیابی کنید.');
+                    }
+                    $caseNumber = sprintf(
+                        'IMP-B%d-%s-R%d',
+                        (int) $this->importBatch->branch_id,
+                        substr($hash, 0, 20),
+                        $excelRowNumber
+                    );
                 }
 
                 $ownerFullName = $this->text($rowArray[3] ?? null);
@@ -119,22 +158,45 @@ class SurveyCasesImport implements ToCollection, WithStartRow, WithChunkReading
                     'import_batch_id' => $this->importBatch->id,
                 ];
 
+                // Historical files used batch-scoped numbers for empty case numbers.
+                // Detect those old rows as well after their source file hashes are backfilled.
+                if (!$hasExplicitNumber && $this->legacySameFileBatchIds !== []) {
+                    $legacyNumbers = array_map(
+                        fn (int $id) => 'IMP-'.$id.'-'.$excelRowNumber,
+                        $this->legacySameFileBatchIds
+                    );
+                    if (SurveyCase::withTrashed()->whereIn('case_number', $legacyNumbers)->exists()) {
+                        throw new \RuntimeException('این ردیف بدون شماره پرونده قبلاً در بارگذاری قدیمی همین فایل ثبت شده است.');
+                    }
+                }
+
                 // Each imported file owns its own set of newly-created cases.
                 // Overwriting a case from a prior batch would silently move ownership
                 // between import groups and break safe batch deletion.
-                if (SurveyCase::query()->where('case_number', $caseNumber)->exists()) {
-                    throw new \RuntimeException('شماره پرونده قبلاً ثبت شده است؛ رکورد تکراری بازنویسی نشد.');
+                if (SurveyCase::withTrashed()->where('case_number', $caseNumber)->exists()) {
+                    throw new \RuntimeException('شماره پرونده قبلاً ثبت شده (حتی اگر حذف نرم شده باشد)؛ ردیف تکراری ذخیره نشد.');
                 }
                 SurveyCase::create($payload);
 
+                if ($this->retryRowSet !== null) {
+                    ImportError::query()->where('import_batch_id', $this->importBatch->id)
+                        ->where('row_number', $excelRowNumber)->delete();
+                    $this->failedRows = max(0, $this->failedRows - 1);
+                }
                 $this->successRows++;
             } catch (\Throwable $e) {
-                $this->failedRows++;
+                if ($this->retryRowSet === null) {
+                    $this->failedRows++;
+                } else {
+                    // Replace earlier failures instead of recording duplicate error rows.
+                    ImportError::query()->where('import_batch_id', $this->importBatch->id)
+                        ->where('row_number', $excelRowNumber)->delete();
+                }
 
                 ImportError::create([
                     'import_batch_id' => $this->importBatch->id,
                     'row_number' => $excelRowNumber,
-                    'field_name' => null,
+                    'field_name' => str_contains($e->getMessage(), 'شماره پرونده') ? 'case_number' : (str_contains($e->getMessage(), 'نام و نام خانوادگی') ? 'owner_full_name' : null),
                     'error_message' => $e->getMessage(),
                     'row_data' => $rowArray,
                 ]);
@@ -145,8 +207,8 @@ class SurveyCasesImport implements ToCollection, WithStartRow, WithChunkReading
             'total_rows' => $this->totalRows,
             'success_rows' => $this->successRows,
             'failed_rows' => $this->failedRows,
-            'status' => 'completed',
-            'finished_at' => now(),
+            // Do not mark a 300-row chunk as the whole file being completed.
+            // Controller finalizes the batch only after all chunks finish.
         ]);
     }
 
