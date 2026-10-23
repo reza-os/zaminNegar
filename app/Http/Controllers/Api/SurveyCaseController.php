@@ -21,9 +21,12 @@ class SurveyCaseController extends Controller
             'status:id,title,color', 'stage:id,title,color',
             'priority:id,title,color', 'assignedUser:id,name,role',
             'surveyor:id,name,role',
+            'creator:id,name,deleted_at',
         ]);
         Visibility::cases($query, $request->user());
-        return response()->json(CaseFilters::response(CaseFilters::apply($query, $filters), $filters));
+        $payload = CaseFilters::response(CaseFilters::apply($query, $filters), $filters);
+        Visibility::annotateCases($payload['data'], $request->user());
+        return response()->json($payload);
     }
 
     public function filterOptions(Request $request)
@@ -70,13 +73,19 @@ class SurveyCaseController extends Controller
     public function show(Request $request, SurveyCase $surveyCase)
     {
         $this->authorizeCase($request, $surveyCase);
-        return response()->json($this->loadCase($surveyCase));
+        $case = $this->loadCase($surveyCase);
+        if ($request->user()->isEmployee()) {
+            $case->setAttribute('can_edit', Visibility::canEditCase($request->user(), $case));
+            $case->setAttribute('can_delete', (int)$case->created_by === (int)$request->user()->id && (int)$case->branch_id === (int)$request->user()->branch_id);
+        }
+        return response()->json($case);
     }
 
     public function update(Request $request, SurveyCase $surveyCase)
     {
         abort_unless($request->user()->isEmployee(), 403);
         $this->authorizeCase($request, $surveyCase);
+        abort_unless(Visibility::canEditCase($request->user(), $surveyCase), 403, 'برای ویرایش این پرونده مجوز ندارید.');
         $oldValues = $surveyCase->toArray();
 
         $data = $this->validatedData($request, $surveyCase->id);
@@ -104,6 +113,7 @@ class SurveyCaseController extends Controller
     {
         abort_unless($request->user()->isEmployee(), 403);
         $this->authorizeCase($request, $surveyCase);
+        abort_unless((int) $surveyCase->created_by === (int) $request->user()->id, 403, 'حذف پرونده مشترک مجاز نیست.');
         $surveyCase->delete();
         ActivityLog::create([
             'user_id' => $request->user()->id, 'branch_id' => $surveyCase->branch_id,
@@ -217,6 +227,7 @@ class SurveyCaseController extends Controller
             'priority:id,title,color',
             'assignedUser:id,name,role',
             'surveyor:id,name,role',
+            'creator:id,name,deleted_at',
         ]);
     }
 }

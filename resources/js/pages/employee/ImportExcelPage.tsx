@@ -4,13 +4,14 @@ import type { ChangeEvent, FormEvent } from 'react';
 import { FileSpreadsheet, Loader2, Search, Trash2, UploadCloud } from 'lucide-react';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import { api } from '../../api/client';
-import { errorMessage } from '../../lib/roles';
+import { errorMessage, cachedUser } from '../../lib/roles';
 import './employee-warm.css';
 
-type Batch = { id: number; original_file_name: string; status: string; total_rows: number; success_rows: number; failed_rows: number; created_at: string };
+type Batch = { id: number; user_id: number; user?: {name: string; deleted_at?:string|null}|null; original_file_name: string; status: string; total_rows: number; success_rows: number; failed_rows: number; created_at: string };
 
 export default function ImportExcelPage() {
   const [file, setFile] = useState<File | null>(null);
+  const ownId = cachedUser()?.id;
   const [result, setResult] = useState<Batch | null>(null);
   const [history, setHistory] = useState<Batch[]>([]);
   const [historyPage, setHistoryPage] = useState(1);
@@ -83,7 +84,7 @@ export default function ImportExcelPage() {
           <button className="employee-secondary-button">جست‌وجو</button>
         </form>
         {history.length===0 ? <p className="text-sm text-[var(--ew-muted)]">هنوز فایلی بارگذاری نکرده‌اید.</p> :
-          <div className="employee-scroll overflow-x-auto"><table className="employee-table min-w-[760px]"><thead><tr>{['نام فایل','وضعیت','موفق','خطادار','تاریخ','عملیات'].map(x=><th key={x} className="p-3">{x}</th>)}</tr></thead><tbody>{history.map(batch=><tr key={batch.id}><td className="p-3 font-black text-[var(--ew-text)]">{batch.original_file_name}</td><td className="p-3">{batch.status}</td><td className="p-3">{batch.success_rows.toLocaleString('fa-IR')}</td><td className="p-3">{batch.failed_rows.toLocaleString('fa-IR')}</td><td className="p-3">{new Date(batch.created_at).toLocaleDateString('fa-IR')}</td><td className="p-3"><div className="flex flex-wrap gap-2"><Link to={`/employee/imports/${batch.id}`} className="employee-soft-button !px-3 !py-2 !text-xs">مشاهده گروه</Link><button type="button" onClick={()=>deleteBatch(batch)} className="employee-danger-button !px-3 !py-2 !text-xs"><Trash2 size={14}/> حذف گروه</button></div></td></tr>)}</tbody></table></div>}
+          <div className="employee-scroll overflow-x-auto"><table className="employee-table min-w-[760px]"><thead><tr>{['نام فایل','ثبت‌کننده','وضعیت','موفق','خطادار','تاریخ','عملیات'].map(x=><th key={x} className="p-3">{x}</th>)}</tr></thead><tbody>{history.map(batch=><tr key={batch.id}><td className="p-3 font-black text-[var(--ew-text)]">{batch.original_file_name}</td><td className="p-3">{batch.user?.name || 'نامشخص'}{batch.user?.deleted_at?' (حذف‌شده)':''}</td><td className="p-3">{batch.status}</td><td className="p-3">{batch.success_rows.toLocaleString('fa-IR')}</td><td className="p-3">{batch.failed_rows.toLocaleString('fa-IR')}</td><td className="p-3">{new Date(batch.created_at).toLocaleDateString('fa-IR')}</td><td className="p-3"><div className="flex flex-wrap gap-2"><Link to={`/employee/imports/${batch.id}`} className="employee-soft-button !px-3 !py-2 !text-xs">مشاهده گروه</Link>{ownId === batch.user_id && <button type="button" onClick={()=>deleteBatch(batch)} className="employee-danger-button !px-3 !py-2 !text-xs"><Trash2 size={14}/> حذف گروه</button>}</div></td></tr>)}</tbody></table></div>}
         <div className="mt-5 flex items-center justify-center gap-4 text-sm"><button type="button" disabled={historyPage<=1} onClick={()=>setHistoryPage(p=>p-1)} className="employee-soft-button !px-4 !py-2 disabled:opacity-30">قبلی</button><span>{historyPage.toLocaleString('fa-IR')} از {historyLastPage.toLocaleString('fa-IR')}</span><button type="button" disabled={historyPage>=historyLastPage} onClick={()=>setHistoryPage(p=>p+1)} className="employee-soft-button !px-4 !py-2 disabled:opacity-30">بعدی</button></div>
       </section>
     </div>

@@ -16,6 +16,7 @@ import ManagerEmployeesPage from './pages/manager/ManagerEmployeesPage';
 import ManagerBranchPage from './pages/manager/ManagerBranchPage';
 import ManagerDashboardPage from './pages/manager/ManagerDashboardPage';
 import ManagerFinancePage from './pages/manager/ManagerFinancePage';
+import ManagerDataAccessPage from './pages/manager/ManagerDataAccessPage';
 import { api } from './api/client';
 import { cachedUser, homeFor, type Role, type SessionUser } from './lib/roles';
 
@@ -74,6 +75,7 @@ export default function RootApp() {
       <Route path="/manager/branches" element={<Manager><ManagerBranchesPage/></Manager>} />
       <Route path="/manager/branches/:id" element={<Manager><ManagerBranchPage/></Manager>} />
       <Route path="/manager/employees" element={<Manager><ManagerEmployeesPage/></Manager>} />
+      <Route path="/manager/data-access" element={<Manager><ManagerDataAccessPage/></Manager>} />
       <Route path="/employee/dashboard" element={<Staff><EmployeeDashboard/></Staff>} />
       <Route path="/employee/activities" element={<Staff><EmployeeActivityPage/></Staff>} />
       <Route path="/employee/cases" element={<Staff><CaseListPage/></Staff>} />

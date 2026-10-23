@@ -22,7 +22,7 @@ class ImportController extends Controller
             'page'=>['nullable','integer','min:1'],
             'search'=>['nullable','string','max:100'],
         ]);
-        $query = Visibility::imports(ImportBatch::query(), $request->user());
+        $query = Visibility::imports(ImportBatch::query()->with('user:id,name,deleted_at'), $request->user());
         if (!empty($input['search'])) {
             $search = trim($input['search']);
             $query->where('original_file_name', 'like', "%{$search}%");
@@ -104,22 +104,25 @@ class ImportController extends Controller
 
     public function cases(Request $request, ImportBatch $importBatch)
     {
-        abort_unless($request->user()->isEmployee() && (int) $importBatch->user_id === (int) $request->user()->id, 404);
+        abort_unless($request->user()->isEmployee() && Visibility::imports(ImportBatch::query()->whereKey($importBatch->id), $request->user())->exists(), 404);
         $data = $request->validate(['search'=>['nullable','string','max:100'],'page'=>['nullable','integer','min:1']]);
         $search = trim((string)($data['search'] ?? ''));
-        $query = SurveyCase::query()->where('import_batch_id', $importBatch->id)
-            ->where('created_by', $request->user()->id)->with('status:id,title,color')->latest('id');
+        $query = Visibility::cases(SurveyCase::query()->where('import_batch_id', $importBatch->id), $request->user())
+            ->with('status:id,title,color')->latest('id');
         if ($search !== '') {
             $query->where(fn ($q) => $q->where('case_number','like',"%{$search}%")
                 ->orWhere('owner_full_name','like',"%{$search}%")
                 ->orWhere('national_code','like',"%{$search}%"));
         }
-        return response()->json($query->paginate(20));
+        $paginator = $query->paginate(20);
+        Visibility::annotateCases($paginator->items(), $request->user());
+        return response()->json($paginator);
     }
 
     public function destroy(Request $request, ImportBatch $importBatch)
     {
-        abort_unless($request->user()->isEmployee() && (int)$importBatch->user_id === (int)$request->user()->id, 404);
+        abort_unless($request->user()->isEmployee() && (int)$importBatch->user_id === (int)$request->user()->id
+            && (int)$importBatch->branch_id === (int)$request->user()->branch_id, 404);
         $deleted = DB::transaction(function () use ($request, $importBatch) {
             $batch = ImportBatch::query()->whereKey($importBatch->id)->lockForUpdate()->firstOrFail();
             abort_if($batch->status === 'processing', 409, 'پردازش فایل هنوز پایان نیافته است.');
@@ -150,6 +153,6 @@ class ImportController extends Controller
     public function show(Request $request, ImportBatch $importBatch)
     {
         abort_unless(Visibility::imports(ImportBatch::query()->whereKey($importBatch->id), $request->user())->exists(), 404);
-        return $importBatch->load('errors');
+        return $importBatch->load(['errors', 'user']);
     }
 }

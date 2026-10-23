@@ -14,6 +14,7 @@ export type CaseActionItem = {
 type CaseActionsDialogProps = {
   item: CaseActionItem;
   canDelete: boolean;
+  canEdit?: boolean;
   isDeleting: boolean;
   error: string;
   onDelete: () => void;
@@ -24,6 +25,7 @@ type CaseActionsDialogProps = {
 export default function CaseActionsDialog({
   item,
   canDelete,
+  canEdit = true,
   isDeleting,
   error,
   onDelete,
@@ -121,7 +123,7 @@ export default function CaseActionsDialog({
         {error && <div role="alert" className="employee-alert mt-4">{error}</div>}
         <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Link to={`/employee/cases/${item.id}/edit`} className="employee-button min-h-12">
-            <Edit3 size={17} aria-hidden="true" /> ویرایش پرونده
+            <Edit3 size={17} aria-hidden="true" /> {canEdit ? 'ویرایش پرونده' : 'مشاهده کامل پرونده'}
           </Link>
           {canDelete && (
             <button type="button" onClick={onDelete} disabled={isDeleting} className="employee-danger-button min-h-12">
@@ -131,7 +133,7 @@ export default function CaseActionsDialog({
           )}
         </div>
         <p className="mt-4 text-center text-xs leading-6 text-[var(--ew-muted)]">
-          حذف پرونده فقط پس از تأیید شما انجام می‌شود.
+          دسترسی پرونده طبق مجوز منیجر است. حذف فقط برای ثبت‌کننده اصلی مجاز است.
         </p>
       </div>
     </div>

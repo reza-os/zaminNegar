@@ -57,7 +57,7 @@ class SurveyCase extends Model
     public function branch() { return $this->belongsTo(Branch::class); }
     public function surveyor() { return $this->belongsTo(User::class, 'surveyor_id'); }
     public function assignedUser() { return $this->belongsTo(User::class, 'assigned_user_id'); }
-    public function creator() { return $this->belongsTo(User::class, 'created_by'); }
+    public function creator() { return $this->belongsTo(User::class, 'created_by')->withTrashed(); }
     public function updater() { return $this->belongsTo(User::class, 'updated_by'); }
     public function actions() { return $this->hasMany(CaseAction::class, 'case_id'); }
     public function documents() { return $this->hasMany(CaseDocument::class, 'case_id'); }

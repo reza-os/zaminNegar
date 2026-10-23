@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
+use App\Models\CaseAccessGrant;
 use App\Models\Branch;
 use App\Models\ImportBatch;
 use App\Models\SurveyCase;
@@ -83,7 +84,9 @@ class ManagerEmployeeController extends Controller
                 unset($data['password']);
             }
             $employee->update($data);
-            $this->backfillUnassignedHistory($employee);
+            // Changing the employee's current branch must not move historical cases or batches.
+            CaseAccessGrant::where('employee_id', $employee->id)
+                ->where('branch_id', '!=', $employee->branch_id)->delete();
             if (!$employee->is_active) {
                 $employee->tokens()->delete();
             }
@@ -104,7 +107,9 @@ class ManagerEmployeeController extends Controller
             Branch::whereKey($data['branch_id'])->where('is_active', true)->lockForUpdate()->firstOrFail();
             $old = $employee->branch_id;
             $employee->update(['branch_id' => $data['branch_id']]);
-            $this->backfillUnassignedHistory($employee);
+            // Changing the employee's current branch must not move historical cases or batches.
+            CaseAccessGrant::where('employee_id', $employee->id)
+                ->where('branch_id', '!=', $employee->branch_id)->delete();
             $this->log($request, $employee, 'employee_assigned', "تغییر شعبه کارمند از {$old} به {$employee->branch_id}",
                 ['branch_id' => $old], ['branch_id' => $employee->branch_id]);
         });
@@ -118,6 +123,7 @@ class ManagerEmployeeController extends Controller
             $old = $employee->only(['name', 'username', 'email', 'branch_id']);
             $employee->update(['is_active' => false]);
             $employee->tokens()->delete();
+            CaseAccessGrant::where('employee_id', $employee->id)->delete();
             $employee->delete(); // Soft-delete: never erase case ownership or audit history.
             $this->log($request, $employee, 'employee_deleted', 'حذف نرم حساب کارمند', $old);
         });

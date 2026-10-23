@@ -52,7 +52,7 @@ class DashboardController extends Controller
             // Self-only employee performance numbers; these filters must never be replaced
             // by a branch_id filter because colleagues share a branch.
             'my_performance' => [
-                'created_cases' => (clone $base)->count(),
+                'created_cases' => SurveyCase::query()->where('created_by', $user->id)->where('branch_id', $user->branch_id)->count(),
                 'excel_uploads' => ImportBatch::where('user_id', $user->id)->count(),
                 'successful_excel_rows' => (int) ImportBatch::where('user_id', $user->id)->sum('success_rows'),
                 'logged_activities' => ActivityLog::where('user_id', $user->id)->count(),

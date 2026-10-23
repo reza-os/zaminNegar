@@ -34,7 +34,7 @@ class ManagerFinanceController extends Controller
         $salesByEmployee = (clone $cases)
             ->select('created_by')->selectRaw('SUM(contract_amount) as sales_amount, COUNT(*) as case_count')
             ->groupBy('created_by')->orderByDesc('sales_amount')->limit(20)->get();
-        $userNames = User::whereIn('id',$salesByEmployee->pluck('created_by')->filter())->pluck('name','id');
+        $userNames = User::withTrashed()->whereIn('id',$salesByEmployee->pluck('created_by')->filter())->pluck('name','id');
         $salesByEmployee = $salesByEmployee->map(fn($r)=>['employee_id'=>$r->created_by,
             'name'=>$userNames[$r->created_by] ?? 'کارمند غیرفعال',
             'sales_amount'=>(float)$r->sales_amount,'case_count'=>(int)$r->case_count]);

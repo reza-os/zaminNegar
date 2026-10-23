@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Activity, Building2, ChevronLeft, ChevronRight, FilePlus2, Home, WalletCards, ListChecks, LogOut, Menu, Upload, UsersRound, UserPlus, X } from 'lucide-react';
+import { Activity, Building2, ChevronLeft, ChevronRight, FilePlus2, Home, WalletCards, ListChecks, LogOut, Menu, Upload, UsersRound, UserPlus, Share2, X } from 'lucide-react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import DailyGreeting from '../components/DailyGreeting';
@@ -11,7 +11,8 @@ const menus = {
     { to: '/manager/dashboard', label: 'داشبورد منیجر', icon: Home },
     { to: '/manager/finance', label: 'داشبورد مالی', icon: WalletCards },
     { to: '/manager/branches', label: 'شعبه‌ها و گزارش‌ها', icon: Building2 },
-    { to: '/manager/employees', label: 'مدیریت کارمندان', icon: UsersRound },
+    { to: '/manager/employees', label: 'مدیریت کارکنان', icon: UsersRound },
+    { to: '/manager/data-access', label: 'اشتراک پرونده و اکسل', icon: Share2 },
   ],
   employee: [
     { to: '/employee/dashboard', label: 'داشبورد من', icon: Home },
@@ -21,7 +22,7 @@ const menus = {
     { to: '/employee/cases', label: 'پرونده‌های من', icon: ListChecks },
   ],
 };
-const roleLabel: Record<string,string> = { admin:'ادمین اصلی', manager:'منیجر', employee:'کارمند شرکت', surveyor:'نقشه‌بردار' };
+const roleLabel: Record<string,string> = { admin:'ادمین اصلی', manager:'منیجر', employee:'کارکن شرکت', surveyor:'نقشه‌بردار' };
 const storageKey = 'zamin-sidebar-collapsed';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
