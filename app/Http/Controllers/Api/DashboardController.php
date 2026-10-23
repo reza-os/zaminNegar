@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\LookupItem;
+use App\Models\ImportBatch;
+use App\Models\CaseAction;
 use App\Models\SurveyCase;
+use App\Support\Visibility;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -15,13 +18,7 @@ class DashboardController extends Controller
         $user = $request->user();
         $query = SurveyCase::query();
 
-        if (!$user->isAdmin()) {
-            $query->where(function ($q) use ($user) {
-                $q->where('created_by', $user->id)
-                  ->orWhere('assigned_user_id', $user->id)
-                  ->orWhere('surveyor_id', $user->id);
-            });
-        }
+        Visibility::cases($query, $user);
 
         $base = clone $query;
         $statuses = LookupItem::where('group_key', 'case_status')->get();
@@ -39,11 +36,8 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
-        $activities = ActivityLog::with('user:id,name,role')
-            ->when(!$user->isAdmin(), fn ($q) => $q->where('user_id', $user->id))
-            ->latest()
-            ->limit(8)
-            ->get();
+        $activityQuery = ActivityLog::with('user:id,name,role');
+        $activities = Visibility::activities($activityQuery, $user)->latest()->limit(8)->get();
 
         return response()->json([
             'stats' => [
@@ -55,6 +49,15 @@ class DashboardController extends Controller
             'status_counts' => $statusCounts,
             'recent_cases' => $recentCases,
             'activities' => $activities,
+            // Self-only employee performance numbers; these filters must never be replaced
+            // by a branch_id filter because colleagues share a branch.
+            'my_performance' => [
+                'created_cases' => (clone $base)->count(),
+                'excel_uploads' => ImportBatch::where('user_id', $user->id)->count(),
+                'successful_excel_rows' => (int) ImportBatch::where('user_id', $user->id)->sum('success_rows'),
+                'logged_activities' => ActivityLog::where('user_id', $user->id)->count(),
+                'case_actions' => CaseAction::where('user_id', $user->id)->count(),
+            ],
         ]);
     }
 }

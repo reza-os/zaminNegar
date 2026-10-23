@@ -1,0 +1,146 @@
+/* Scope every style to the two manager pages; no changes to other dashboards. */
+.manager-warm {
+  --warm-dark: #48251e;
+  --warm-ink: #3d2926;
+  --warm-muted: #806b62;
+  --warm-line: #ebd6c4;
+  --warm-accent: #b75a39;
+  --warm-amber: #de9b55;
+  color: var(--warm-ink);
+  min-width: 0;
+  border-radius: 30px;
+  padding: clamp(10px, 2vw, 20px);
+  background: radial-gradient(circle at 100% 0%, rgba(247,207,162,.3), transparent 35%),
+              linear-gradient(165deg, #fffaf3 0%, #fff7ee 48%, #fffaf6 100%);
+  border: 1px solid #f4e5d6;
+}
+.manager-warm * { box-sizing: border-box; }
+.manager-warm .warm-hero {
+  position: relative; isolation: isolate; overflow: hidden;
+  border: 1px solid rgba(255, 239, 209, .38);
+  border-radius: 30px;
+  background: linear-gradient(115deg, #6c3626 0%, #99503b 38%, #d68451 77%, #e4ae6b 100%);
+  box-shadow: 0 26px 44px -32px rgba(89, 39, 22, .7), inset 0 2px 0 rgba(255,255,255,.18), 0 7px 0 -4px #bd886a;
+  color: #fff8ee;
+  padding: clamp(23px, 4vw, 42px);
+  margin-bottom: 26px;
+}
+.manager-warm .warm-hero::before {
+  content: ''; position: absolute; pointer-events: none; z-index: -1;
+  width: 340px; height: 340px; left: -76px; top: -168px;
+  border: 1px solid rgba(255,255,255,.18); border-radius: 50%;
+  box-shadow: 0 0 0 38px rgba(255,255,255,.045), 0 0 0 90px rgba(255,255,255,.035), 0 0 0 144px rgba(255,255,255,.02);
+}
+.manager-warm .warm-hero::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: -1;
+  background: radial-gradient(circle at 70% -25%, rgba(255,231,167,.36), transparent 42%), radial-gradient(circle at 0 95%, rgba(65,28,22,.15), transparent 52%);
+}
+.manager-warm .warm-hero-icon {
+  width: 54px; height: 54px; display: grid; place-items: center;
+  border: 1px solid rgba(255,255,255,.28); border-radius: 19px;
+  background: rgba(255,255,255,.16); box-shadow: 0 11px 22px rgba(48,18,10,.17), inset 0 1px 0 rgba(255,255,255,.4);
+  backdrop-filter: blur(7px);
+}
+.manager-warm .warm-eyebrow { font-weight: 800; font-size: 12px; letter-spacing: .035em; color: #fff0d1; }
+.manager-warm .warm-hero h1 { font-size: clamp(24px, 3vw, 34px); line-height: 1.6; font-weight: 900; margin-top: 5px; }
+.manager-warm .warm-hero p { font-size: 13px; line-height: 2; color: rgba(255,248,238,.87); max-width: 65ch; margin-top: 6px; }
+.manager-warm .warm-hero-chip {
+  display: inline-flex; align-items: center; gap: 9px;
+  background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.23);
+  border-radius: 999px; padding: 9px 15px; font-size: 12px; font-weight: 700; backdrop-filter: blur(8px);
+}
+.manager-warm .warm-stat {
+  display: flex; align-items: center; gap: 15px;
+  border-radius: 23px; border: 1px solid #ead1ba;
+  background: linear-gradient(145deg, #fffdfa 0%, #fff5e7 100%);
+  padding: 19px 20px; min-width: 0;
+  box-shadow: 5px 7px 0 -2px rgba(215,170,131,.32), 0 17px 25px -20px rgba(102,49,24,.42), inset 0 1px 0 #fff;
+}
+.manager-warm .warm-stat-icon {
+  flex: 0 0 auto; display: grid; place-items: center; width: 48px; height: 48px;
+  border-radius: 16px; color: #8c452c; background: #f9e2c7;
+  border: 1px solid #edc6a1; box-shadow: inset 0 2px 1px rgba(255,255,255,.75), 2px 3px 0 #efcca9;
+}
+.manager-warm .warm-stat-label { display: block; color: #8b7167; font-size: 12px; line-height: 1.8; }
+.manager-warm .warm-stat-value { display: block; margin-top: 2px; font-size: 24px; line-height: 1.4; font-weight: 900; color: #5e3024; font-variant-numeric: tabular-nums; }
+.manager-warm .warm-panel {
+  min-width: 0; border-radius: 28px; border: 1px solid #e8d3c0;
+  background: linear-gradient(150deg, #fffcf7, #fff9f0 60%, #fef4e9);
+  box-shadow: 0 22px 35px -28px rgba(98,47,29,.65), 5px 6px 0 -3px rgba(226,193,161,.5), inset 0 1px 0 #fff;
+  padding: clamp(18px, 2.8vw, 28px);
+}
+.manager-warm .warm-panel-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+.manager-warm .warm-panel-title { font-size: 15px; font-weight: 900; color: #5c3528; display: flex; align-items: center; gap: 10px; }
+.manager-warm .warm-panel-icon { width: 34px; height: 34px; display: inline-grid; place-items: center; border: 1px solid #f1d1b3; border-radius: 11px; color: #ad5838; background: #fbe8d2; }
+.manager-warm .warm-counter { padding: 6px 12px; background: #fbe6cf; border: 1px solid #efd0ae; border-radius: 999px; font-size: 12px; font-weight: 800; color: #985234; }
+.manager-warm label { color: #715247; }
+.manager-warm input:not([type='checkbox']),
+.manager-warm select, .manager-warm textarea {
+  width: 100%; background: #fffdf9; border: 1px solid #e9d4bf; border-radius: 13px;
+  color: #493129; box-shadow: inset 0 2px 3px rgba(116,61,33,.045);
+  transition: border-color .18s, box-shadow .18s, background .18s;
+}
+.manager-warm input:not([type='checkbox']):focus,
+.manager-warm select:focus, .manager-warm textarea:focus {
+  outline: none; border-color: #c78256; background: #fff;
+  box-shadow: 0 0 0 3px rgba(210,136,81,.17), inset 0 1px 2px rgba(116,61,33,.04);
+}
+.manager-warm input[type='checkbox'] { accent-color: #b85c3a; }
+.manager-warm button[type='submit'], .manager-warm .warm-primary {
+  display: inline-flex; justify-content: center; align-items: center; gap: 8px;
+  border-radius: 13px; border: 1px solid #9d462b;
+  background: linear-gradient(135deg, #a94c31, #c66c43);
+  color: #fff9f2; font-size: 13px; font-weight: 800; padding: 12px 21px;
+  box-shadow: 0 5px 0 #7d3727, 0 11px 16px -13px #8a3d27;
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+}
+.manager-warm button[type='submit']:hover:not(:disabled), .manager-warm .warm-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 7px 0 #7d3727, 0 14px 20px -13px #8a3d27; filter: brightness(1.04); }
+.manager-warm button[type='submit']:active:not(:disabled), .manager-warm .warm-primary:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 2px 0 #7d3727; }
+.manager-warm .warm-outline {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 13px;
+  border-radius: 12px; border: 1px solid #e6c7af; color: #7b4432;
+  background: linear-gradient(#fff, #fff6eb); font-size: 12px; font-weight: 800;
+  box-shadow: 0 3px 0 -1px #e6c7af;
+  transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.manager-warm .warm-outline:hover:not(:disabled) { transform: translateY(-2px); background: #ffefdc; box-shadow: 0 5px 0 -1px #e6c7af; }
+.manager-warm .warm-danger { color: #9b443e; border-color: #e9c5b9; background: #fff6f2; box-shadow: 0 3px 0 -1px #f0cbc1; }
+.manager-warm .warm-danger:hover:not(:disabled) { background: #ffe7df; }
+.manager-warm button:disabled { cursor: not-allowed; opacity: .45; }
+.manager-warm .warm-scroll {
+  max-height: min(600px, 70vh); min-height: 170px; perspective: 1100px;
+  padding: 12px; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain;
+  scrollbar-gutter: stable; border-radius: 20px;
+  border: 1px solid #ecdbc9; background: linear-gradient(135deg, rgba(250,233,211,.6), rgba(255,251,244,.85));
+}
+.manager-warm .warm-scroll::-webkit-scrollbar { width: 8px; }
+.manager-warm .warm-scroll::-webkit-scrollbar-thumb { border-radius: 20px; background: #ddb58e; border: 2px solid #faeddb; }
+.manager-warm .warm-record {
+  position: relative; isolation: isolate; min-width: 0; overflow: hidden;
+  border-radius: 19px; border: 1px solid #ead1b9;
+  background: linear-gradient(140deg, #fff, #fff8ef);
+  padding: 17px; margin-bottom: 12px;
+  box-shadow: 0 6px 14px -12px #744632, 3px 4px 0 -2px #edcfb2;
+  transform: translateZ(0); transform-style: preserve-3d;
+  transition: transform .22s cubic-bezier(.2,.85,.3,1), box-shadow .22s ease, border-color .22s ease;
+}
+.manager-warm .warm-record:last-child { margin-bottom: 0; }
+.manager-warm .warm-record::before { content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 4px; background: linear-gradient(#e8ae74, #b55b3b); }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .manager-warm .warm-record:hover { transform: translate3d(0,-4px,10px) rotateX(1deg); border-color: #d6a37a; box-shadow: 0 15px 27px -18px #7c4228, 5px 7px 0 -3px #e1ba94; }
+}
+.manager-warm .warm-avatar { display: grid; flex: 0 0 auto; place-items: center; width: 43px; height: 43px; border-radius: 15px; color: #87422c; background: linear-gradient(145deg,#ffe7c8,#f2bf91); border: 1px solid #ecc5a5; box-shadow: inset 0 1px #fff, 2px 3px 0 #e9c7a7; font-size: 16px; font-weight: 900; }
+.manager-warm .warm-ministat { display: inline-flex; align-items: center; gap: 5px; border: 1px solid #f0dfcf; background: #fffaf4; padding: 6px 10px; border-radius: 10px; color: #8a6654; font-size: 11px; font-weight: 700; }
+.manager-warm .warm-badge { display: inline-flex; align-items: center; border-radius: 999px; padding: 4px 10px; font-size: 11px; font-weight: 800; }
+.manager-warm .warm-badge-active { background: #e6efe3; color: #4c7654; border: 1px solid #cfe3c9; }
+.manager-warm .warm-badge-inactive { background: #fce5dc; color: #9a5139; border: 1px solid #f0c6b4; }
+.manager-warm .warm-modal {
+  border-radius: 25px; border: 1px solid #f0d4b7;
+  background: linear-gradient(155deg,#fffdfa,#fff5e8); padding: clamp(20px,3vw,29px);
+  box-shadow: 0 30px 75px rgba(55,27,16,.27), 6px 8px 0 -4px rgba(243,191,143,.35);
+}
+.manager-warm .warm-pagination { color: #8b6e5c; font-size: 12px; }
+.manager-warm .warm-tint-message { background: #fff0de; border: 1px solid #f3d5b5; border-radius: 14px; padding: 12px 15px; color: #8f592e; font-size: 12px; line-height: 1.9; }
+.manager-warm button:focus-visible,.manager-warm a:focus-visible { outline: 3px solid #e29a4c; outline-offset: 3px; }
+@media (max-width: 639px) { .manager-warm { border-radius: 21px; } .manager-warm .warm-hero { border-radius: 24px; } .manager-warm .warm-panel { border-radius: 22px; } .manager-warm .warm-stat { border-radius: 18px; padding: 14px; } .manager-warm .warm-stat-icon { width: 40px; height: 40px; } .manager-warm .warm-stat-value { font-size: 20px; } .manager-warm .warm-scroll { padding: 8px; max-height: 56vh; } .manager-warm .warm-record { padding: 14px; } }
+@media (prefers-reduced-motion: reduce) { .manager-warm *, .manager-warm *::before, .manager-warm *::after { scroll-behavior: auto !important; animation: none !important; transition-duration: .01ms !important; } }

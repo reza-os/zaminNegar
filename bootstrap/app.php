@@ -12,8 +12,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        $middleware->alias([
+            'role' => \App\Http\Middleware\RequireRole::class,
+            'active' => \App\Http\Middleware\EnsureActiveUser::class,
+        ]);
+
+          $middleware->alias([
+            'role' => \App\Http\Middleware\RequireRole::class,
+            'active' => \App\Http\Middleware\EnsureActiveUser::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+      
     })->create();

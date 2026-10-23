@@ -7,7 +7,6 @@ import {
   Clock3,
   FileText,
   Loader2,
-  ShieldCheck,
   WalletCards,
 } from 'lucide-react';
 
@@ -63,6 +62,7 @@ type DashboardData = {
   status_counts: StatusCount[];
   recent_cases: RecentCase[];
   activities: ActivityItem[];
+  my_performance: { created_cases:number; excel_uploads:number; successful_excel_rows:number; logged_activities:number; case_actions:number };
 };
 
 const formatNumber = (value: unknown) => {
@@ -108,9 +108,6 @@ export default function EmployeeDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const canViewFullActivities =
-    currentUser?.role === 'admin' || currentUser?.role === 'manager';
-
   useEffect(() => {
     let mounted = true;
 
@@ -147,7 +144,7 @@ export default function EmployeeDashboard() {
           <div>
             <h1 className="text-2xl font-black md:text-3xl">داشبورد</h1>
             <p className="mt-2 text-sm leading-7 text-slate-300">
-              خلاصه وضعیت پرونده‌ها، فعالیت‌ها و آخرین اطلاعات ثبت‌شده در سامانه.
+              فقط پرونده‌ها، بارگذاری‌ها و فعالیت‌های شخصی شما در این داشبورد نمایش داده می‌شوند.
             </p>
           </div>
 
@@ -208,6 +205,25 @@ export default function EmployeeDashboard() {
                 tone="bg-slate-900 text-white"
               />
             </div>
+
+            <section aria-label="عملکرد شخصی من" className="rounded-[2rem] border border-slate-200 bg-white p-5 sm:p-6">
+              <h2 className="mb-4 text-base font-black text-slate-900">گزارش عملکرد من</h2>
+              <p className="mb-5 text-xs leading-6 text-slate-500">این اعداد فقط مربوط به حساب خودتان هستند، نه سایر کارکنان شعبه.</p>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+                {[
+                  ['پرونده‌های ثبت‌شده', data.my_performance.created_cases],
+                  ['بارگذاری اکسل', data.my_performance.excel_uploads],
+                  ['ردیف‌های موفق اکسل', data.my_performance.successful_excel_rows],
+                  ['رویدادهای ثبت‌شده', data.my_performance.logged_activities],
+                  ['اقدامات پرونده‌ها', data.my_performance.case_actions],
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                    <p className="text-xs leading-6 text-slate-600">{label}</p>
+                    <p className="mt-2 text-xl font-black text-slate-900">{formatNumber(value)}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
 
             <div className="grid gap-6 xl:grid-cols-3">
               <section className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm xl:col-span-1">
@@ -299,19 +315,16 @@ export default function EmployeeDashboard() {
                 <div>
                   <h2 className="text-lg font-black text-slate-900">فعالیت‌های اخیر</h2>
                   <p className="mt-1 text-xs text-slate-400">
-                    نمایش آخرین فعالیت‌ها همراه با نام کاربر انجام‌دهنده.
+                    نمایش فعالیت‌های ثبت‌شده توسط حساب شما.
                   </p>
                 </div>
 
-                {canViewFullActivities && (
-                  <Link
-                    to="/admin/activity-logs"
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-xs font-black text-white hover:bg-emerald-700"
-                  >
-                    <ShieldCheck size={16} />
-                    مشاهده ۳۰ فعالیت اخیر
-                  </Link>
-                )}
+                <Link
+                  to="/employee/activities"
+                  className="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-5 py-3 text-xs font-black text-white hover:bg-emerald-700"
+                >
+                  مشاهده همه فعالیت‌های من
+                </Link>
               </div>
 
               {data.activities.length === 0 ? (

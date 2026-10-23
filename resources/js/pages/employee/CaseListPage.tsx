@@ -99,7 +99,7 @@ export default function CaseListPage() {
   const [searchInput, setSearchInput] = useState('');
   const [activeSearch, setActiveSearch] = useState('');
 
-  const canDelete = currentUser?.role === 'admin' || currentUser?.role === 'manager';
+  const canDelete = currentUser?.role === 'employee' || currentUser?.role === 'surveyor';
 
   useEffect(() => {
     api

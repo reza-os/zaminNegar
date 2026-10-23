@@ -1,0 +1,49 @@
+/* Scoped typography: does not change the rest of the site or the dashboard. */
+.zn-login {
+  font-family: 'Vazirmatn Variable', 'Vazirmatn', Tahoma, Arial, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+.zn-login input,
+.zn-login button,
+.zn-login label {
+  font-family: inherit;
+}
+
+.zn-login .zn-login-input {
+  -webkit-appearance: none;
+  appearance: none;
+  color: #fff;
+  caret-color: #bfdbfe;
+  line-height: 1.8;
+}
+
+/* Browsers can paint autofilled inputs pale blue/white, overriding Tailwind backgrounds. */
+.zn-login .zn-login-input:-webkit-autofill,
+.zn-login .zn-login-input:-webkit-autofill:hover,
+.zn-login .zn-login-input:-webkit-autofill:focus,
+.zn-login .zn-login-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #18243c inset !important;
+  -webkit-text-fill-color: #fff !important;
+  caret-color: #bfdbfe;
+  border-color: rgba(147, 197, 253, 0.5);
+  transition: background-color 9999s ease-out;
+}
+
+.zn-login .zn-login-input:autofill {
+  background-color: #18243c !important;
+  color: #fff !important;
+}
+
+.zn-login .zn-login-input::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+
+/* Don't rely on floating labels: static labels prevent browser zoom and autofill overlap. */
+@media (max-width: 360px) {
+  .zn-login {
+    padding-inline: 1.15rem;
+  }
+}

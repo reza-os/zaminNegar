@@ -36,6 +36,7 @@ class AuthController extends Controller
 
         ActivityLog::create([
             'user_id' => $user->id,
+            'branch_id' => $user->branch_id,
             'action' => 'login',
             'description' => 'ورود به سامانه',
             'ip_address' => $request->ip(),

@@ -17,7 +17,7 @@ class SurveyCase extends Model
         'last_action_at', 'last_action_at_jalali', 'next_action', 'next_action_at', 'next_action_at_jalali',
         'followup_status_id', 'stop_reason_id', 'contract_amount', 'received_amount',
         'customer_source_id', 'financial_status_id', 'physical_status_id', 'archive_code',
-        'created_by', 'updated_by', 'import_batch_id',
+        'created_by', 'updated_by', 'import_batch_id', 'branch_id',
     ];
 
     protected $appends = ['remaining_amount', 'days_without_action'];
@@ -53,6 +53,7 @@ class SurveyCase extends Model
     public function financialStatus() { return $this->belongsTo(LookupItem::class, 'financial_status_id'); }
     public function physicalStatus() { return $this->belongsTo(LookupItem::class, 'physical_status_id'); }
 
+    public function branch() { return $this->belongsTo(Branch::class); }
     public function surveyor() { return $this->belongsTo(User::class, 'surveyor_id'); }
     public function assignedUser() { return $this->belongsTo(User::class, 'assigned_user_id'); }
     public function creator() { return $this->belongsTo(User::class, 'created_by'); }

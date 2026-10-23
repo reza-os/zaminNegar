@@ -19,6 +19,7 @@ class SurveyCasesImport implements ToCollection, WithStartRow, WithChunkReading
     private int $totalRows = 0;
     private int $successRows = 0;
     private int $failedRows = 0;
+    private int $physicalRow = 1;
 
     private array $lookupCache = [];
     private array $userCache = [];
@@ -42,7 +43,7 @@ class SurveyCasesImport implements ToCollection, WithStartRow, WithChunkReading
     {
         foreach ($rows as $index => $row) {
             $rowArray = array_values($row->toArray());
-            $excelRowNumber = $this->startRow() + $index;
+            $excelRowNumber = ++$this->physicalRow;
 
             if ($this->isEmptyBusinessRow($rowArray)) {
                 continue;
@@ -112,20 +113,19 @@ class SurveyCasesImport implements ToCollection, WithStartRow, WithChunkReading
 
                     'archive_code' => $this->textOrNull($rowArray[29] ?? null),
 
+                    'branch_id' => $this->user->branch_id,
                     'created_by' => $this->user->id,
                     'updated_by' => $this->user->id,
                     'import_batch_id' => $this->importBatch->id,
                 ];
 
-                $existing = SurveyCase::query()
-                    ->where('case_number', $caseNumber)
-                    ->first();
-
-                if ($existing) {
-                    $existing->update($payload);
-                } else {
-                    SurveyCase::create($payload);
+                // Each imported file owns its own set of newly-created cases.
+                // Overwriting a case from a prior batch would silently move ownership
+                // between import groups and break safe batch deletion.
+                if (SurveyCase::query()->where('case_number', $caseNumber)->exists()) {
+                    throw new \RuntimeException('شماره پرونده قبلاً ثبت شده است؛ رکورد تکراری بازنویسی نشد.');
                 }
+                SurveyCase::create($payload);
 
                 $this->successRows++;
             } catch (\Throwable $e) {
@@ -378,6 +378,7 @@ class SurveyCasesImport implements ToCollection, WithStartRow, WithChunkReading
         }
 
         return $this->userCache[$name] = User::query()
+            ->where('branch_id', $this->user->branch_id)
             ->where('name', 'like', '%' . $name . '%')
             ->value('id');
     }
