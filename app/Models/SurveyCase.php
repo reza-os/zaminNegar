@@ -18,6 +18,7 @@ class SurveyCase extends Model
         'followup_status_id', 'stop_reason_id', 'contract_amount', 'received_amount',
         'customer_source_id', 'financial_status_id', 'physical_status_id', 'archive_code',
         'created_by', 'updated_by', 'import_batch_id', 'branch_id',
+        'activity_state', 'registration_state',
     ];
 
     protected $appends = ['remaining_amount', 'days_without_action'];

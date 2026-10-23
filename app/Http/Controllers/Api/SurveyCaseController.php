@@ -8,6 +8,7 @@ use App\Models\LookupItem;
 use App\Models\User;
 use App\Models\SurveyCase;
 use App\Support\Visibility;
+use App\Support\CaseFilters;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -15,51 +16,19 @@ class SurveyCaseController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = (int) $request->query('per_page', 25);
-        $perPage = max(5, min($perPage, 100));
-
-        $search = trim((string) $request->query('search', ''));
-
-        $query = SurveyCase::query()
-            ->with([
-                'status:id,title,color',
-                'stage:id,title,color',
-                'priority:id,title,color',
-                'assignedUser:id,name,role',
-                'surveyor:id,name,role',
-            ])
-            ->latest('id');
-
-        Visibility::cases($query, $request->user());
-
-        if ($search !== '') {
-            $query->where(function ($q) use ($search) {
-                $q->where('case_number', 'like', "%{$search}%")
-                    ->orWhere('owner_full_name', 'like', "%{$search}%")
-                    ->orWhere('father_name', 'like', "%{$search}%")
-                    ->orWhere('national_code', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%")
-                    ->orWhere('village_name', 'like', "%{$search}%")
-                    ->orWhere('file_location', 'like', "%{$search}%")
-                    ->orWhere('archive_code', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%");
-            });
-        }
-
-        $paginator = $query->paginate($perPage);
-
-        return response()->json([
-            'data' => $paginator->items(),
-            'meta' => [
-                'current_page' => $paginator->currentPage(),
-                'last_page' => $paginator->lastPage(),
-                'per_page' => $paginator->perPage(),
-                'total' => $paginator->total(),
-                'from' => $paginator->firstItem(),
-                'to' => $paginator->lastItem(),
-                'has_more' => $paginator->hasMorePages(),
-            ],
+        $filters = CaseFilters::validated($request);
+        $query = SurveyCase::query()->with([
+            'status:id,title,color', 'stage:id,title,color',
+            'priority:id,title,color', 'assignedUser:id,name,role',
+            'surveyor:id,name,role',
         ]);
+        Visibility::cases($query, $request->user());
+        return response()->json(CaseFilters::response(CaseFilters::apply($query, $filters), $filters));
+    }
+
+    public function filterOptions(Request $request)
+    {
+        return response()->json(['data' => CaseFilters::options()]);
     }
 
     public function assignees(Request $request)
@@ -155,6 +124,8 @@ class SurveyCaseController extends Controller
     {
         $rules = [
             'case_number' => ['required','string','max:100', Rule::unique('survey_cases','case_number')->ignore($caseId)->whereNull('deleted_at')],
+            'activity_state' => ['sometimes','nullable',Rule::in(['active','inactive'])],
+            'registration_state' => ['sometimes','nullable',Rule::in(['registered','unregistered'])],
             'owner_full_name' => ['required','string','max:255'],
             'case_date_jalali' => ['nullable','string','max:30'],
             'birth_date_jalali' => ['nullable','string','max:30'],

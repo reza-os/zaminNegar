@@ -8,6 +8,8 @@ use App\Models\Branch;
 use App\Models\ImportBatch;
 use App\Models\SurveyCase;
 use App\Models\User;
+use App\Support\CaseFilters;
+use App\Support\Visibility;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -102,6 +104,18 @@ class ManagerBranchController extends Controller
             'recent_activities' => ActivityLog::where('branch_id', $branch->id)->with('user:id,name,role')
                 ->latest('id')->limit(25)->get(['id', 'branch_id', 'user_id', 'action', 'description', 'created_at']),
         ]);
+    }
+
+    /** Paginated cases for a chosen branch; all managers can view all branches. */
+    public function cases(Request $request, Branch $branch)
+    {
+        $filters = CaseFilters::validated($request);
+        $query = SurveyCase::query()->where('branch_id', $branch->id)
+            ->with(['status:id,title,color', 'stage:id,title,color',
+                'priority:id,title,color', 'creator:id,name']);
+        Visibility::cases($query, $request->user());
+
+        return response()->json(CaseFilters::response(CaseFilters::apply($query, $filters), $filters));
     }
 
     private function log(Request $request, Branch $branch, string $action, string $description,

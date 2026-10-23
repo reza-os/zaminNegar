@@ -35,6 +35,7 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::get('/dashboard/options', [ManagerAnalyticsController::class, 'options']);
         Route::get('/branches', [ManagerBranchController::class, 'index']);
         Route::post('/branches', [ManagerBranchController::class, 'store']);
+        Route::get('/branches/{branch}/cases', [ManagerBranchController::class, 'cases']);
         Route::get('/branches/{branch}', [ManagerBranchController::class, 'show']);
         Route::put('/branches/{branch}', [ManagerBranchController::class, 'update']);
         Route::delete('/branches/{branch}', [ManagerBranchController::class, 'destroy']);
@@ -62,6 +63,7 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     });
 
     Route::middleware('role:employee,surveyor,manager')->group(function () {
+        Route::get('/survey-cases/filter-options', [SurveyCaseController::class, 'filterOptions']);
         Route::get('/survey-cases', [SurveyCaseController::class, 'index']);
         Route::get('/survey-cases/{surveyCase}', [SurveyCaseController::class, 'show']);
         Route::get('/imports/{importBatch}', [ImportController::class, 'show']);
