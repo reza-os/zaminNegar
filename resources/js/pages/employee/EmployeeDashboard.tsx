@@ -6,6 +6,7 @@ import {
   BarChart3,
   Clock3,
   FileText,
+  ClipboardList,
   Loader2,
   WalletCards,
 } from 'lucide-react';
@@ -106,10 +107,13 @@ export default function EmployeeDashboard() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [newRequests, setNewRequests] = useState<number | null>(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
     let mounted = true;
+    api.get<{new:number}>('/case-requests/summary')
+      .then(({data}) => { if (mounted) setNewRequests(data.new); }).catch(() => {});
 
     Promise.all([
       api.get<DashboardData>('/dashboard'),
@@ -160,6 +164,8 @@ export default function EmployeeDashboard() {
             )}
           </div>
         </div>
+
+        {newRequests !== null && <Link to="/employee/requests" className="flex items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950 transition hover:bg-emerald-100"><span className="flex items-center gap-2 font-bold"><ClipboardList size={20}/> درخواست‌های جدید دفتر شما: {newRequests.toLocaleString('fa-IR')}</span><span className="text-xs font-bold">مشاهده و بررسی درخواست‌ها ←</span></Link>}
 
         {loading && (
           <div className="flex min-h-64 items-center justify-center rounded-[2rem] bg-white">

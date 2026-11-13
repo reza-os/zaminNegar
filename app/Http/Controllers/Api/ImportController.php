@@ -223,7 +223,7 @@ class ImportController extends Controller
 
     private function finalizeCounters(ImportBatch $batch): void
     {
-        $success = SurveyCase::query()->where('import_batch_id', $batch->id)->count();
+        $success = SurveyCase::query()->where('import_batch_id', $batch->id)->count() + (int) $batch->fresh()->restored_rows;
         $failed = ImportError::query()->where('import_batch_id', $batch->id)
             ->distinct()->count('row_number');
         $batch->update([
@@ -267,19 +267,15 @@ class ImportController extends Controller
             && (int) $importBatch->branch_id === (int) $request->user()->branch_id, 404);
 
         $deleted = $deletion->deleteBatch($importBatch);
-        // DB transaction already committed. Source file no longer belongs to working records.
-        if ($importBatch->file_name && Storage::exists($importBatch->file_name)) {
-            Storage::delete($importBatch->file_name);
-        }
         ActivityLog::create([
             'user_id' => $request->user()->id, 'branch_id' => $importBatch->branch_id,
-            'action' => 'excel_batch_deleted',
-            'description' => 'حذف سخت گروه عملیاتی: '.$importBatch->original_file_name.' ('.$deleted.' پرونده). نسخه دائمی محفوظ است.',
+            'action' => 'excel_batch_trashed',
+            'description' => 'انتقال گروه اکسل به سطل زباله: '.$importBatch->original_file_name.' ('.$deleted.' پرونده). نسخه دائمی محفوظ است.',
             'subject_type' => ImportBatch::class, 'subject_id' => $importBatch->id,
             'ip_address' => $request->ip(), 'user_agent' => $request->userAgent(),
         ]);
         return response()->json([
-            'message' => 'گروه و پرونده‌های عملیاتی آن حذف شدند. نسخه آرشیوی بدون تغییر باقی ماند.',
+            'message' => 'گروه از فهرست اکسل حذف شد؛ پرونده‌های فعال آن به سطل زباله منتقل شدند و همچنان قابل بازیابی هستند. نسخه آرشیوی محفوظ است.',
             'deleted_cases' => $deleted,
         ]);
     }

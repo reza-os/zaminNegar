@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\LookupItem;
 use App\Models\SurveyCase;
+use App\Services\CaseLifecycleService;
 use App\Models\User;
 use App\Support\PersianCalendar;
 use Illuminate\Support\Facades\DB;
@@ -105,14 +106,19 @@ final class ExcelRevisionService
         $sheets=Excel::toArray($reader,Storage::disk('local')->path($path));
         $rows=$sheets[0]??[];
         if(count($rows)<2 || count($rows)>10001) throw ValidationException::withMessages(['file'=>'فایل باید بین ۱ تا ۱۰٬۰۰۰ ردیف داشته باشد.']);
-        $manifest=[];$warnings=[];$seen=[];$counts=['updated'=>0,'unchanged'=>0,'new'=>0,'skipped'=>0];
-        $numbers=array_values(array_unique(array_filter(array_map(fn($row)=>$this->text($row[2]??null),array_slice($rows,1)))));
+        $manifest=[];$warnings=[];$seen=[];$counts=['updated'=>0,'unchanged'=>0,'new'=>0,'restored'=>0,'skipped'=>0];
+        $numbers=array_values(array_unique(array_filter(array_map(fn($row)=>CaseLifecycleService::normalizeNumber($this->text($row[2]??null)),array_slice($rows,1)))));
+        $lookupNumbers = [];
+        foreach ($numbers as $number) {
+            array_push($lookupNumbers, ...CaseLifecycleService::numberVariants($number));
+        }
         $existing=collect();
-        foreach(array_chunk($numbers,450) as $chunk) {
-            $existing=$existing->union(SurveyCase::query()->whereIn('case_number',$chunk)->get()->keyBy('case_number'));
+        foreach(array_chunk(array_values(array_unique($lookupNumbers)),450) as $chunk) {
+            $existing=$existing->union(SurveyCase::withTrashed()->whereIn('case_number',$chunk)
+                ->get()->keyBy(fn ($case) => CaseLifecycleService::normalizeNumber($case->case_number)));
         }
         foreach(array_slice($rows,1) as $i=>$row) {
-            $line=$i+2;$number=$this->text($row[2]??null);
+            $line=$i+2;$number=CaseLifecycleService::normalizeNumber($this->text($row[2]??null));
             $owner=$this->text($row[3]??null);
             if($number==='' && $owner==='') continue;
             if ($number==='' || isset($seen[$number])) {
@@ -126,7 +132,7 @@ final class ExcelRevisionService
             if ($case && (int)$case->created_by!==(int)$actor->id) {
                 $counts['skipped']++;$warnings[]="ردیف {$line}: ویرایش پرونده همکار بدون مجوز تطبیق مجاز نیست.";continue;
             }
-            if($case && !$case->import_batch_id) {
+            if($case && !$case->trashed() && !$case->import_batch_id) {
                 $counts['skipped']++;$warnings[]="ردیف {$line}: پرونده دستی است؛ در تطبیق اکسل به‌روزرسانی نمی‌شود.";continue;
             }
             if($owner===''){$counts['skipped']++;$warnings[]="ردیف {$line}: نام مالک خالی است.";continue;}
@@ -137,6 +143,20 @@ final class ExcelRevisionService
             if(!$case){
                 $counts['new']++;
                 $manifest[]=['kind'=>'new','line'=>$line,'number'=>$number,'payload'=>$payload];
+                continue;
+            }
+            if ($case->trashed()) {
+                try {
+                    app(CaseLifecycleService::class)->assertRestoreOwnership($case, $actor);
+                    app(CaseLifecycleService::class)->assertSameIdentity($case, $payload);
+                } catch (ValidationException $e) {
+                    $counts['skipped']++;
+                    $warnings[] = "ردیف {$line}: هویت یا مالکیت پرونده حذف‌شده تأیید نشد.";
+                    continue;
+                }
+                $counts['restored']++;
+                $manifest[]=['kind'=>'restore','line'=>$line,'id'=>$case->id,'number'=>$number,
+                    'expected_updated_at'=>(string)$case->getRawOriginal('updated_at'), 'payload'=>$payload];
                 continue;
             }
             // Immutable archive's original national ID is an identity guard; changing it needs manager review.
@@ -173,7 +193,7 @@ final class ExcelRevisionService
             'expires_at'=>now()->addMinutes(20),'created_at'=>now(),'updated_at'=>now(),
         ]);
         return ['token'=>$token,'preview_id'=>$id,'counts'=>$result['counts'],'warnings'=>$result['warnings'],
-            'note'=>'سلول خالی تغییری ایجاد نمی‌کند؛ پرونده دستی و پرونده همکار به‌روزرسانی نمی‌شود. اعمال تغییرات نیازمند تأیید است.'];
+            'note'=>'سلول خالی تغییری ایجاد نمی‌کند؛ پرونده فعال دستی و پرونده همکار به‌روزرسانی نمی‌شود. پرونده‌های حذف‌شده شما پس از تأیید بازیابی می‌شوند.'];
     }
     public function apply(string $token,User $actor): array {
         return DB::transaction(function() use($token,$actor) {
@@ -186,10 +206,12 @@ final class ExcelRevisionService
             $manifest=json_decode(Crypt::decryptString($preview->manifest_ciphertext),true,512,JSON_THROW_ON_ERROR);
             // All-or-nothing: detect any concurrent edit, missing row or changed ownership before applying.
             foreach($manifest as $row) {
-                if($row['kind']==='update') {
-                    $case=SurveyCase::query()->whereKey($row['id'])->lockForUpdate()->first();
+                if(in_array($row['kind'], ['update', 'restore'], true)) {
+                    $case=SurveyCase::withTrashed()->whereKey($row['id'])->lockForUpdate()->first();
                     if(!$case || (int)$case->branch_id!==(int)$actor->branch_id || (int)$case->created_by!==(int)$actor->id
-                        || !$case->import_batch_id || (string)$case->getRawOriginal('updated_at')!==$row['expected_updated_at']) {
+                        || ($row['kind']==='update' && ($case->trashed() || !$case->import_batch_id))
+                        || ($row['kind']==='restore' && !$case->trashed())
+                        || (string)$case->getRawOriginal('updated_at')!==$row['expected_updated_at']) {
                         throw ValidationException::withMessages(['token'=>'پرونده‌ای پس از پیش‌نمایش تغییر کرده است؛ ابتدا پیش‌نمایش جدید بگیرید.']);
                     }
                 } else {
@@ -227,7 +249,7 @@ final class ExcelRevisionService
                 // Operational source for this group must remain available for audits/retry.
                 app(CaseArchiveService::class)->rememberFile($batch);
             }
-            $updated=0;$created=0;
+            $updated=0;$created=0;$restored=0;
             foreach($manifest as $row) {
                 if($row['kind']==='update') {
                     $case=SurveyCase::query()->findOrFail($row['id']);
@@ -240,6 +262,21 @@ final class ExcelRevisionService
                         'old_values'=>$row['old'],'new_values'=>$row['changes'],
                     ]);
                     $updated++;
+                } elseif ($row['kind'] === 'restore') {
+                    $result = app(CaseLifecycleService::class)->createOrRestore([
+                        ...$row['payload'], 'case_number'=>$row['number'],
+                        'branch_id'=>$actor->branch_id, 'updated_by'=>$actor->id,
+                    ], $actor, 'excel', null, true);
+                    if (!$result['restored']) {
+                        throw ValidationException::withMessages(['token'=>'پرونده پس از پیش‌نمایش تغییر کرده است.']);
+                    }
+                    \App\Models\ActivityLog::create([
+                        'user_id'=>$actor->id, 'branch_id'=>$result['case']->branch_id,
+                        'action'=>'case_restored_from_excel',
+                        'description'=>'بازیابی پرونده از اکسل اصلاحی ('.$row['number'].')',
+                        'subject_type'=>SurveyCase::class,'subject_id'=>$result['case']->id,
+                    ]);
+                    $restored++;
                 } else {
                     $payload=[...$row['payload'],'case_number'=>$row['number'],
                         'branch_id'=>$actor->branch_id,'created_by'=>$actor->id,'updated_by'=>$actor->id,
@@ -261,7 +298,7 @@ final class ExcelRevisionService
                 }
             }
             DB::table('excel_revision_previews')->where('id',$preview->id)->update(['applied_at'=>now(),'updated_at'=>now()]);
-            return ['updated'=>$updated,'created'=>$created,'message'=>'تغییرات تأییدشده اعمال شدند؛ آرشیو نسخه اولیه محفوظ است.'];
+            return ['updated'=>$updated,'created'=>$created,'restored'=>$restored,'message'=>'تغییرات تأییدشده اعمال شدند و پرونده‌های حذف‌شده واجد شرایط بازیابی شدند؛ آرشیو نسخه اولیه محفوظ است.'];
         },3);
     }
 }

@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import {
   Building2,
   Mail,
@@ -90,13 +91,13 @@ function TrustBadge({ label, imageSrc, href }: { label: string; imageSrc: string
 function FooterLinkColumn({ title, links }: { title: string; links: ReadonlyArray<{ label: string; href: string }> }) {
   return (
     <div>
-      <h3 className="mb-5 text-base font-extrabold text-white">{title}</h3>
+      <h3 className="mb-5 flex items-center gap-2 text-base font-extrabold text-white"><span className="h-4 w-1 rounded-full bg-emerald-300" />{title}</h3>
       <ul className="space-y-3 text-sm leading-7 text-slate-200/80">
         {links.map((link) => (
           <li key={link.label}>
-            <a href={link.href} className="transition hover:text-white">
+            <Link to={link.href} className="transition hover:text-white">
               {link.label}
-            </a>
+            </Link>
           </li>
         ))}
       </ul>
@@ -106,9 +107,12 @@ function FooterLinkColumn({ title, links }: { title: string; links: ReadonlyArra
 
 export default function SiteFooter() {
   return (
-    <footer className="px-4 pb-6 pt-16 sm:px-6 lg:px-8 lg:pb-8">
-      <div className="mx-auto max-w-7xl rounded-[2rem] border border-white/20 bg-slate-900/75 shadow-[0_24px_80px_-32px_rgba(15,23,42,0.85)] backdrop-blur-2xl">
-        <div className="grid gap-10 px-6 py-8 sm:px-8 lg:grid-cols-[1.25fr_0.9fr_0.9fr_1.2fr] lg:px-10 lg:py-10 xl:px-12">
+    <footer className="relative isolate overflow-hidden border-t border-emerald-200/15 bg-[#073c32] text-white">
+      {/* Original artwork in public/images/landing; gradient preserves legibility on small screens. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-20 bg-cover bg-center" style={{ backgroundImage: "url('/images/landing/footer-survey-panorama.webp')" }} />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-[#073c32]/95 via-[#064a3a]/85 to-[#073c32]/68" />
+      <div className="relative mx-auto w-full max-w-[1450px]">
+        <div className="grid gap-10 px-6 py-12 sm:grid-cols-2 sm:px-8 lg:grid-cols-[1.25fr_0.9fr_0.9fr_1.2fr] lg:gap-14 lg:px-10 lg:py-16 xl:px-12">
           <div className="order-1 space-y-5">
             <div className="flex items-start gap-4">
               <FooterLogoMark />
@@ -145,7 +149,7 @@ export default function SiteFooter() {
           </div>
 
           <div className="order-2 lg:order-4">
-            <h3 className="mb-5 text-base font-extrabold text-white">تماس با ما</h3>
+            <h3 className="mb-5 flex items-center gap-2 text-base font-extrabold text-white"><span className="h-4 w-1 rounded-full bg-emerald-300" />تماس با ما</h3>
             <ul className="space-y-4 text-sm leading-8 text-slate-100/90">
               {footerContent.phones.map((phone) => (
                 <li key={phone.value} className="flex items-start gap-3">
@@ -182,7 +186,7 @@ export default function SiteFooter() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-3 border-t border-white/10 px-6 py-5 text-sm text-slate-200/70 sm:px-8 lg:flex-row lg:items-center lg:justify-between lg:px-10 xl:px-12">
+        <div className="flex flex-col gap-3 border-t border-white/20 px-6 py-5 text-sm text-slate-100/80 sm:px-8 lg:flex-row lg:items-center lg:justify-between lg:px-10 xl:px-12">
           <div>{footerContent.copyright}</div>
           <div>{footerContent.credit}</div>
         </div>

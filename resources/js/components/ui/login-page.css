@@ -1,0 +1,7 @@
+/* زمین‌نگار - پوسته ورود، تصویر واقعی دفتر و فرم سمت راست */
+.zn-login-page{background:#092936 url('/images/login/survey-office.webp') center center / cover no-repeat;isolation:isolate;overflow-x:hidden;overflow-y:auto}
+.zn-login-page-shade{position:absolute;inset:0;pointer-events:none;background:linear-gradient(270deg,rgba(1,29,39,.36) 0%,rgba(2,30,40,.17) 48%,rgba(1,28,37,.02) 80%)}
+.zn-login-page .zn-login{border:1px solid rgba(190,248,232,.33);background:rgba(6,31,42,.73);box-shadow:0 26px 75px rgba(0,18,29,.40),inset 0 1px rgba(255,255,255,.10);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+.zn-login-page .zn-login input:focus{border-color:#78eacb;box-shadow:0 0 0 3px rgba(120,234,203,.16)}
+@media(max-width:650px){.zn-login-page{background-position:39% center}.zn-login-page-shade{background:linear-gradient(0deg,rgba(0,20,28,.48),rgba(2,27,37,.30))}.zn-login-page>div.relative.z-10{justify-content:center;padding-right:0}.zn-login-page .zn-login{background:rgba(5,29,41,.83);max-width:430px}}
+@media(prefers-reduced-motion:reduce){.zn-login-page .zn-login{scroll-behavior:auto}}

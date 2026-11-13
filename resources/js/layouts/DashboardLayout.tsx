@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Activity, Building2, ChevronLeft, ChevronRight, FilePlus2, Home, WalletCards, ListChecks, LogOut, Menu, Upload, UsersRound, UserPlus, Share2, X } from 'lucide-react';
+import { Activity, ClipboardList, Building2, ChevronLeft, ChevronRight, FilePlus2, Home, WalletCards, ListChecks, LogOut, Menu, Upload, Trash2, UsersRound, UserPlus, Share2, X } from 'lucide-react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import DailyGreeting from '../components/DailyGreeting';
@@ -9,6 +9,7 @@ const menus = {
   admin: [{ to: '/admin/managers', label: 'مدیریت منیجرها', icon: UserPlus }],
   manager: [
     { to: '/manager/dashboard', label: 'داشبورد منیجر', icon: Home },
+    { to: '/manager/requests', label: 'درخواست‌های سایت', icon: ClipboardList },
     { to: '/manager/finance', label: 'داشبورد مالی', icon: WalletCards },
     { to: '/manager/branches', label: 'شعبه‌ها و گزارش‌ها', icon: Building2 },
     { to: '/manager/employees', label: 'مدیریت کارکنان', icon: UsersRound },
@@ -16,10 +17,12 @@ const menus = {
   ],
   employee: [
     { to: '/employee/dashboard', label: 'داشبورد من', icon: Home },
+    { to: '/employee/requests', label: 'درخواست‌های دفتر', icon: ClipboardList },
     { to: '/employee/activities', label: 'فعالیت‌های من', icon: Activity },
     { to: '/employee/cases/create', label: 'ثبت پرونده جدید', icon: FilePlus2 },
     { to: '/employee/import', label: 'بارگذاری از اکسل', icon: Upload },
     { to: '/employee/cases', label: 'پرونده‌های من', icon: ListChecks },
+    { to: '/employee/cases/trash', label: 'پرونده‌های حذف‌شده', icon: Trash2 },
   ],
 };
 const roleLabel: Record<string,string> = { admin:'ادمین اصلی', manager:'منیجر', employee:'کارکن شرکت', surveyor:'نقشه‌بردار' };

@@ -1,0 +1,5 @@
+/* 3D equipment rises above the navy panel but fades smoothly INTO its bottom. */
+.zn-system-section{isolation:isolate}
+.zn-system-art-img{-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 54%,rgba(0,0,0,.94) 63%,rgba(0,0,0,.64) 78%,transparent 99%);mask-image:linear-gradient(to bottom,#000 0%,#000 54%,rgba(0,0,0,.94) 63%,rgba(0,0,0,.64) 78%,transparent 99%)}
+@media(max-width:1023px){.zn-system-art-img{-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 53%,transparent 97%);mask-image:linear-gradient(to bottom,#000 0%,#000 53%,transparent 97%)}}
+@media(max-width:640px){.zn-system-art{margin-top:4px}.zn-system-art-img{max-width:470px}}

@@ -1,5 +1,5 @@
 /** توابع مستقل، قابل آزمون و بدون وابستگی برای بررسی ورودی‌های فرم عمومی. */
-export type CaseRequestField = 'fullName' | 'nationalId' | 'mobile' | 'description';
+export type CaseRequestField = 'fullName' | 'nationalId' | 'mobile' | 'branchId' | 'description';
 export type CaseRequestValues = Record<CaseRequestField, string>;
 export type CaseRequestErrors = Partial<Record<CaseRequestField, string>>;
 
@@ -7,6 +7,7 @@ export const initialCaseRequestValues: CaseRequestValues = {
   fullName: '',
   nationalId: '',
   mobile: '',
+  branchId: '',
   description: '',
 };
 
@@ -54,6 +55,9 @@ export function validateCaseRequest(values: CaseRequestValues): CaseRequestError
   if (!/^09\d{9}$/.test(mobile)) {
     errors.mobile = 'شماره موبایل معتبر، مانند ۰۹۱۲۱۲۳۴۵۶۷ وارد کنید.';
   }
+  if (!/^[1-9]\d*$/.test(values.branchId)) {
+    errors.branchId = 'دفتر موردنظر را انتخاب کنید.';
+  }
   if (description.length > 1500) {
     errors.description = 'توضیحات نباید بیشتر از ۱۵۰۰ نویسه باشد.';
   }
@@ -62,6 +66,7 @@ export function validateCaseRequest(values: CaseRequestValues): CaseRequestError
 
 export function normalizedCaseRequest(values: CaseRequestValues) {
   return {
+    branch_id: Number(values.branchId),
     full_name: values.fullName.replace(/\s+/g, ' ').trim(),
     national_id: latinDigits(values.nationalId).trim(),
     mobile: normalizePhone(values.mobile),

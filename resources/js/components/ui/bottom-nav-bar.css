@@ -1,28 +1,29 @@
 /* Glass navigation styles: only these prefixed selectors affect the landing page. */
 .zng-header {
-  position: fixed;
-  inset-block-start: 0;
-  inset-inline: 0;
+  position: relative;
   z-index: 60;
-  padding: max(12px, env(safe-area-inset-top)) 16px 0;
-  pointer-events: none;
+  width: 100%;
+  padding: 0;
+  pointer-events: auto;
+  background: #072f3d;
 }
 .zng-header-inner,
 .zng-mobile-panel {
   pointer-events: auto;
-  border: 1px solid rgba(255,255,255,.26);
-  background: rgba(9, 35, 43, .46);
+  border: 0;
+  background: #072f3d;
   -webkit-backdrop-filter: blur(18px) saturate(125%);
   backdrop-filter: blur(18px) saturate(125%);
-  box-shadow: 0 10px 36px rgba(0,15,25,.16), inset 0 1px 0 rgba(255,255,255,.12);
+  box-shadow: none;
   color: white;
 }
 .zng-header-inner {
-  max-width: 1240px;
-  min-height: 76px;
-  margin-inline: auto;
-  padding: 10px 16px;
-  border-radius: 24px;
+  width: 100%;
+  max-width: none;
+  min-height: 72px;
+  margin: 0;
+  padding: 10px clamp(15px, 4vw, 68px);
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -30,7 +31,7 @@
   transition: background .2s ease, box-shadow .2s ease;
 }
 .zng-header--scrolled .zng-header-inner,
-.zng-header--scrolled .zng-mobile-panel { background: rgba(8, 32, 41, .84); }
+.zng-header--scrolled .zng-mobile-panel { background: #072f3d; }
 .zng-brand {
   display: inline-flex;
   align-items: center;
@@ -144,15 +145,17 @@
   .zng-pill-link { padding-inline: 10px; }
 }
 @media (max-width: 1023px) {
-  .zng-header { padding: max(10px, env(safe-area-inset-top)) 12px 0; }
-  .zng-header-inner { min-height: 66px; padding: 8px 12px; border-radius: 20px; }
+  .zng-header { padding: 0; }
+  .zng-header-inner { min-height: 66px; padding: 8px 15px; border-radius: 0; }
   .zng-header .zng-pill-nav { display: none; }
   .zng-mobile-toggle { display: inline-flex; }
   .zng-mobile-panel {
+    position: absolute;
+    top: 100%; right: 0; left: 0;
     display: grid;
-    width: min(420px, calc(100vw - 24px));
-    margin: 9px max(0px, calc((100vw - 1240px) / 2)) 0 auto;
-    border-radius: 20px;
+    width: 100%;
+    margin: 0;
+    border-radius: 0;
     padding: 10px;
   }
 }
@@ -172,4 +175,33 @@
 }
 @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
   .zng-header-inner, .zng-mobile-panel { background: rgba(8, 32, 41, .93); }
+}
+
+/* Compact genuine full-width header, with a menu that pushes mobile content down. */
+.zng-header-inner{min-height:66px;padding:8px clamp(12px,2vw,30px);gap:10px}
+.zng-brand-logo{padding:3px}
+.zng-pill-nav{background:transparent;border-color:transparent;padding:3px;gap:0}
+.zng-pill-link{font-size:11px;min-height:37px;padding-inline:10px}
+.zng-header-actions{gap:7px}
+.zng-login{min-height:39px;padding:0 13px;font-size:11px}
+@media(max-width:1023px){
+ .zng-header-inner{min-height:61px;padding:7px 12px}
+ .zng-mobile-panel{position:static;display:grid;padding:8px 12px 12px;border-top:1px solid rgba(255,255,255,.12);box-shadow:0 5px 10px rgba(0,0,0,.14)}
+ .zng-brand-slogan{display:none}
+}
+@media(max-width:540px){
+ .zng-header-inner{min-height:59px;gap:5px}
+ .zng-brand-symbol{height:40px;width:40px;flex-shrink:0;border-radius:12px}
+ .zng-brand-label{display:flex;gap:1px}
+ .zng-brand-name{font-size:14px}
+ .zng-login{min-height:38px;font-size:10px;padding:0 9px;gap:5px}
+ .zng-login svg{width:15px}
+ .zng-mobile-toggle{height:39px;width:39px;border-radius:11px}
+}
+@media(max-width:365px){
+ .zng-brand-name{font-size:12px}.zng-brand{gap:5px}
+ .zng-brand-symbol{width:35px;height:35px}
+ .zng-login{font-size:9px;padding-inline:7px}
+ .zng-header-actions{gap:4px}
+ .zng-mobile-toggle{width:35px;height:35px}
 }

@@ -1,15 +1,16 @@
 import * as React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { LogIn, MapPinned, Menu, X } from 'lucide-react';
 import { company } from '../config/company';
 import { navigationItems, siteNavigation } from '../config/navigation';
 import { BottomNavBar, navigationIcons } from './ui/bottom-nav-bar';
 
-/** نوار شیشه‌ای روی هیرو؛ در صفحه ورود و داشبورد استفاده نمی‌شود. */
+/** هدر مستطیلی و تمام‌عرض؛ در جریان طبیعی صفحه و خارج از اسلایدر. */
 export default function SiteHeader() {
+  const location = useLocation();
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [activeId, setActiveId] = React.useState<string>(() =>
-    typeof window === 'undefined' ? 'hero' : window.location.hash.slice(1) || 'hero',
+    typeof window === 'undefined' ? 'hero' : window.location.pathname === '/about' ? 'showcase' : window.location.pathname === '/services' ? 'services' : window.location.hash.slice(1) || 'hero',
   );
   const [scrolled, setScrolled] = React.useState(false);
   const [logoFailed, setLogoFailed] = React.useState(false);
@@ -24,6 +25,14 @@ export default function SiteHeader() {
   }, []);
 
   React.useEffect(() => {
+    setMenuOpen(false);
+    if (location.pathname === '/about') { setActiveId('showcase'); return; }
+    if (location.pathname === '/services') { setActiveId('services'); return; }
+    setActiveId(location.hash.slice(1) || 'hero');
+  }, [location.pathname, location.hash]);
+
+  React.useEffect(() => {
+    if (location.pathname !== '/' && location.pathname !== '/landing') return;
     const nodes = navigationItems
       .map((item) => document.getElementById(item.id))
       .filter((node): node is HTMLElement => Boolean(node));
@@ -37,7 +46,7 @@ export default function SiteHeader() {
     }, { rootMargin: '-14% 0px -65% 0px', threshold: [0, .25, .5] });
     nodes.forEach((node) => observer.observe(node));
     return () => observer.disconnect();
-  }, []);
+  }, [location.pathname]);
 
   React.useEffect(() => {
     if (!menuOpen) return;
@@ -103,16 +112,16 @@ export default function SiteHeader() {
           {navigationItems.map((item) => {
             const Icon = navigationIcons[item.id] || MapPinned;
             return (
-              <a
+              <Link
                 key={item.id}
-                href={item.href}
+                to={item.href}
                 aria-current={activeId === item.id ? 'location' : undefined}
                 className={`zng-mobile-link ${activeId === item.id ? 'zng-mobile-link--active' : ''}`}
                 onClick={() => { setActiveId(item.id); setMenuOpen(false); }}
               >
                 <Icon size={17} aria-hidden="true" />
                 {item.label}
-              </a>
+              </Link>
             );
           })}
         </nav>

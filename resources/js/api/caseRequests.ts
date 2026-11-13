@@ -59,3 +59,33 @@ export async function submitPublicCaseRequest(values: CaseRequestValues): Promis
     window.clearTimeout(timeout);
   }
 }
+
+export type PublicOffice = { id: number; name: string; city: string | null };
+
+/** Public office list is intentionally independent of staff authentication. */
+export async function fetchPublicOffices(signal?: AbortSignal): Promise<PublicOffice[]> {
+  const response = await fetch('/api/public/branches', { headers: { Accept: 'application/json' }, signal });
+  if (!response.ok) throw new Error('دریافت دفترهای شرکت امکان‌پذیر نیست.');
+  const result = await response.json() as { data?: PublicOffice[] };
+  if (!Array.isArray(result.data)) throw new Error('اطلاعات دفترها معتبر نیست.');
+  return result.data;
+}
+
+export type TrackingResult = { tracking_code: string; status: string; created_at: string };
+export async function trackPublicCaseRequest(code: string, phone: string): Promise<TrackingResult> {
+  const response = await fetch('/api/public/case-requests/track', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ tracking_code: code.trim().toUpperCase(), mobile: normalizePhoneForTracking(phone) }),
+  });
+  if (response.status === 429) throw new CaseRequestSubmitError('تعداد تلاش‌ها بیش از حد مجاز است. کمی بعد دوباره تلاش کنید.');
+  if (response.status === 404) throw new CaseRequestSubmitError('درخواستی با این کد و شماره همراه پیدا نشد.');
+  if (!response.ok) throw new CaseRequestSubmitError('پیگیری درخواست ممکن نشد.');
+  const result = await response.json() as { data: TrackingResult };
+  return result.data;
+}
+function normalizePhoneForTracking(input: string): string {
+  return input.replace(/[۰-۹]/g, digit => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(digit)))
+    .replace(/[٠-٩]/g, digit => String('٠١٢٣٤٥٦٧٨٩'.indexOf(digit)))
+    .replace(/[\s\-()]/g, '');
+}

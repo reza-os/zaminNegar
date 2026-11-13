@@ -14,7 +14,12 @@ use App\Http\Controllers\Api\ManagerAnalyticsController;
 use App\Http\Controllers\Api\ManagerDataAccessController;
 use App\Http\Controllers\Api\ManagerFinanceController;
 use App\Http\Controllers\Api\SurveyCaseController;
+use App\Http\Controllers\Api\PublicCaseRequestController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/public/branches', [PublicCaseRequestController::class, 'branches'])->middleware('throttle:40,1');
+Route::post('/public/case-requests', [PublicCaseRequestController::class, 'store'])->middleware('throttle:5,1');
+Route::post('/public/case-requests/track', [PublicCaseRequestController::class, 'track'])->middleware('throttle:8,1');
 
 Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:8,1');
 
@@ -22,6 +27,13 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/auth/me', [AuthController::class, 'me']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/daily-message', DailyMessageController::class);
+
+    Route::middleware('role:employee,surveyor,manager')->group(function () {
+        Route::get('/case-requests', [PublicCaseRequestController::class, 'index']);
+        Route::get('/case-requests/summary', [PublicCaseRequestController::class, 'summary']);
+        Route::get('/case-requests/{caseRequest}', [PublicCaseRequestController::class, 'show'])->whereNumber('caseRequest');
+        Route::patch('/case-requests/{caseRequest}', [PublicCaseRequestController::class, 'update'])->whereNumber('caseRequest');
+    });
 
     Route::middleware('role:admin')->prefix('admin')->group(function () {
         Route::get('/managers', [AdminManagerController::class, 'index']);
@@ -72,6 +84,9 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::get('/imports', [ImportController::class, 'index']);
         Route::get('/imports/{importBatch}/cases', [ImportController::class, 'cases']);
         Route::delete('/imports/{importBatch}', [ImportController::class, 'destroy']);
+        Route::get('/survey-cases/trash', [SurveyCaseController::class, 'trash']);
+        Route::post('/survey-cases/{id}/restore', [SurveyCaseController::class, 'restore'])->whereNumber('id');
+        Route::delete('/survey-cases/{id}/permanent', [SurveyCaseController::class, 'permanentDestroy'])->whereNumber('id');
         Route::delete('/survey-cases/{surveyCase}', [SurveyCaseController::class, 'destroy']);
     });
 

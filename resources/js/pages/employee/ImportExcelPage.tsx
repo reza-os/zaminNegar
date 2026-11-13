@@ -15,6 +15,7 @@ type Batch = {
   status: string;
   total_rows: number;
   success_rows: number;
+  restored_rows?: number;
   failed_rows: number;
   created_at: string;
 };
@@ -49,7 +50,7 @@ export default function ImportExcelPage() {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [revisionFile,setRevisionFile]=useState<File|null>(null);
-  const [revisionPreview,setRevisionPreview]=useState<{token:string;counts:{updated:number;new:number;unchanged:number;skipped:number};warnings:string[];note:string}|null>(null);
+  const [revisionPreview,setRevisionPreview]=useState<{token:string;counts:{updated:number;new:number;restored:number;unchanged:number;skipped:number};warnings:string[];note:string}|null>(null);
   const [revising,setRevising]=useState(false);
 
   const loadHistory = useCallback(async () => {
@@ -106,7 +107,7 @@ export default function ImportExcelPage() {
   async function applyRevision(){
     if(!revisionPreview||revising)return;
     const {counts}=revisionPreview;
-    if(!window.confirm(`تغییر ${fa(counts.updated)} پرونده و ثبت ${fa(counts.new)} پرونده جدید تأیید شود؟ آرشیو نسخه اولیه تغییر نمی‌کند.`))return;
+    if(!window.confirm(`تغییر ${fa(counts.updated)} پرونده، بازیابی ${fa(counts.restored)} پرونده و ثبت ${fa(counts.new)} پرونده جدید تأیید شود؟ آرشیو نسخه اولیه تغییر نمی‌کند.`))return;
     setRevising(true);setError('');setNotice('');
     try{const {data}=await api.post('/imports/revisions/apply',{token:revisionPreview.token});setNotice(data.message);setRevisionPreview(null);setRevisionFile(null);await loadHistory()}
     catch(err){setError(errorMessage(err))}finally{setRevising(false)}
@@ -143,7 +144,7 @@ export default function ImportExcelPage() {
   }
 
   async function deleteBatch(batch: Batch) {
-    if (!window.confirm(`گروه «${batch.original_file_name}» و پرونده‌های عملیاتی آن حذف شوند؟ اطلاعات دائمی در آرشیو حفظ می‌شوند. اگر گروه فاکتور یا سند پیوست داشته باشد، حذف انجام نخواهد شد.`)) return;
+    if (!window.confirm(`گروه «${batch.original_file_name}» از فهرست اکسل حذف و پرونده‌های فعال آن به سطل زباله منتقل شوند؟ همه پرونده‌ها قابل بازیابی خواهند بود. آرشیو حسابرسی حفظ می‌شود.`)) return;
     setError('');
     try { const { data } = await api.delete<{ message: string }>(`/imports/${batch.id}`); setNotice(data.message); await loadHistory(); }
     catch (err) { setError(errorMessage(err)); }
@@ -159,7 +160,7 @@ export default function ImportExcelPage() {
         <div className="employee-badge-soft mb-3">اکسل و ورود گروهی</div>
         <h1 className="text-2xl font-black text-[var(--ew-text)]">بارگذاری هوشمند پرونده‌ها از اکسل</h1>
         <p className="mt-2 max-w-3xl text-sm leading-7 text-[var(--ew-muted)]">
-          فایل تکراری فقط در میان گروه‌های عملیاتی فعال شناسایی می‌شود. پس از حذف سخت گروه، می‌توانید همان اکسل را دوباره وارد کنید؛ سابقه دائمی آن همچنان باقی می‌ماند.
+          فایل تکراری فقط در میان گروه‌های عملیاتی فعال شناسایی می‌شود. پس از انتقال گروه به سطل زباله، می‌توانید همان اکسل را دوباره بارگذاری کنید و پرونده‌های حذف‌شده متعلق به خودتان به جای تکرار، بازیابی می‌شوند.
           برای گروه‌های قبلی می‌توانید فقط ردیف‌های ناموفق را مجدداً بررسی یا گزارش خطاهایشان را دانلود کنید.
         </p>
       </section>
@@ -168,7 +169,7 @@ export default function ImportExcelPage() {
         <h2 className="text-lg font-black text-[var(--ew-text)]">بارگذاری نسخه به‌روزشده اکسل (با پیش‌نمایش)</h2>
         <p className="text-sm leading-7 text-[var(--ew-muted)]">ابتدا تغییرات شناسایی می‌شوند؛ فقط بعد از تأیید اعمال می‌شوند. پرونده‌های دستی و همکار، یا ردیف‌های بدون شماره پرونده صریح، خودکار تغییر نمی‌کنند. سلول خالی مقدار قدیمی را پاک نمی‌کند.</p>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center"><input type="file" accept=".xlsx,.xls" aria-label="اکسل به‌روزشده" onChange={e=>{setRevisionFile(e.target.files?.[0]||null);setRevisionPreview(null)}} className="min-w-0 flex-1 text-sm"/><button type="button" className="employee-secondary-button" disabled={!revisionFile||revising} onClick={()=>void previewRevision()}>{revising?'در حال بررسی...':'پیش‌نمایش تغییرات'}</button></div>
-        {revisionPreview&&<div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm leading-7"><div className="font-black">{fa(revisionPreview.counts.updated)} پرونده تغییرکرده، {fa(revisionPreview.counts.new)} پرونده جدید، {fa(revisionPreview.counts.unchanged)} بدون تغییر، {fa(revisionPreview.counts.skipped)} ردشده</div><p className="my-2">{revisionPreview.note}</p>{revisionPreview.warnings.length>0&&<details><summary className="cursor-pointer font-semibold">هشدارهای تطبیق ({fa(revisionPreview.warnings.length)} مورد نمایش داده‌شده)</summary><div className="mt-2 max-h-52 space-y-1 overflow-auto text-xs">{revisionPreview.warnings.map((v,i)=><p key={i}>{v}</p>)}</div></details>}<button type="button" className="employee-button mt-3" disabled={revising||revisionPreview.counts.updated+revisionPreview.counts.new===0} onClick={()=>void applyRevision()}>تأیید و اعمال تغییرات</button></div>}
+        {revisionPreview&&<div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm leading-7"><div className="font-black">{fa(revisionPreview.counts.restored)} بازیابی، {fa(revisionPreview.counts.updated)} پرونده تغییرکرده، {fa(revisionPreview.counts.new)} پرونده جدید، {fa(revisionPreview.counts.unchanged)} بدون تغییر، {fa(revisionPreview.counts.skipped)} ردشده</div><p className="my-2">{revisionPreview.note}</p>{revisionPreview.warnings.length>0&&<details><summary className="cursor-pointer font-semibold">هشدارهای تطبیق ({fa(revisionPreview.warnings.length)} مورد نمایش داده‌شده)</summary><div className="mt-2 max-h-52 space-y-1 overflow-auto text-xs">{revisionPreview.warnings.map((v,i)=><p key={i}>{v}</p>)}</div></details>}<button type="button" className="employee-button mt-3" disabled={revising||revisionPreview.counts.updated+revisionPreview.counts.new+revisionPreview.counts.restored===0} onClick={()=>void applyRevision()}>تأیید و اعمال تغییرات</button></div>}
       </section>
       <section className="employee-panel">
         <div className="rounded-[1.6rem] border border-dashed border-[#e6bd90] bg-white/60 p-6 text-center">
@@ -200,6 +201,7 @@ export default function ImportExcelPage() {
         {error && <p role="alert" className="employee-alert mt-4">{error}</p>}
         {notice && <p role="status" className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-950">{notice}</p>}
         {result && <div className="employee-grid-3 mt-6"><Box label="کل ردیف‌ها" value={result.total_rows}/><Box label="موفق" value={result.success_rows}/><Box label="خطادار" value={result.failed_rows}/></div>}
+        {result && Number(result.restored_rows || 0) > 0 && <p className="mt-3 rounded-xl bg-emerald-50 p-3 text-sm font-bold text-emerald-800">{fa(result.restored_rows || 0)} پرونده حذف‌شده از همین فایل به‌طور خودکار بازیابی شد.</p>}
         {result && result.failed_rows > 0 && <button type="button" onClick={() => void downloadErrorReport(result.id)}
           disabled={reportingId === result.id} className="employee-soft-button mt-4"><Download size={16}/> دانلود گزارش خطاهای گروه جدید</button>}
       </section>
@@ -233,7 +235,7 @@ export default function ImportExcelPage() {
                   <button type="button" onClick={() => void retryFailed(batch)} disabled={retryingId === batch.id}
                     className="employee-soft-button !px-3 !py-2 !text-xs"><RotateCcw size={14}/> تلاش مجدد خطاها</button>}
                 {ownId === batch.user_id && <button type="button" onClick={() => void deleteBatch(batch)}
-                  className="employee-danger-button !px-3 !py-2 !text-xs"><Trash2 size={14}/> حذف گروه</button>}
+                  className="employee-danger-button !px-3 !py-2 !text-xs"><Trash2 size={14}/> انتقال گروه به سطل زباله</button>}
               </div></td>
             </tr>)}</tbody>
           </table></div>}

@@ -7,14 +7,15 @@ import {
   Target,
   UsersRound,
 } from 'lucide-react';
-import SiteHeader from '../components/SiteHeader';
+import PublicSiteLayout from '../components/PublicSiteLayout';
 import PartnersSection from '../components/PartnersSection';
 import RecentProjectsSection from '../components/RecentProjectsSection';
 import CaseRequestSection from '../components/CaseRequestSection';
-import FeatureCarouselSection from '../components/FeatureCarouselSection';
+import CompanyAdvantagesSection from '../components/CompanyAdvantagesSection';
 import { company } from '../config/company';
-import SiteFooter from '../components/SiteFooter';
+
 import * as React from 'react';
+import '../components/ui/dashboard-hero.css';
 import InkBlotCarousel from '../components/ui/ink-blot-carousel';
 import { heroSettings, heroSlides } from '../config/hero';
 
@@ -50,12 +51,14 @@ function DeferredShowcase() {
 const serviceIcons = [Ruler, MapPinned, ShieldCheck, BarChart3];
 
 export default function LandingPage() {
+  React.useEffect(() => {
+    document.title = 'زمین‌نگار | خدمات نقشه‌برداری و مدیریت اراضی';
+    document.querySelector('meta[name="description"]')?.setAttribute('content', 'خدمات نقشه‌برداری و برداشت UTM، معرفی زمین‌نگار و ثبت درخواست آنلاین برای دفاتر شرکت.');
+  }, []);
   return (
-    <div className="min-h-screen bg-[#f4f8fb] text-slate-900" dir="rtl">
-      <SiteHeader />
-
+    <PublicSiteLayout>
       <main>
-        {/* Full viewport starts at the top of the document; translucent header overlays the hero. */}
+        {/* Compact carousel follows the full-width rectangular header. */}
         <InkBlotCarousel
           slides={heroSlides}
           primaryAction={heroSettings.primaryAction}
@@ -65,7 +68,7 @@ export default function LandingPage() {
           bleed={heroSettings.bleed}
         />
 
-        {/* Lightweight responsive partner logos directly below the full-screen hero. */}
+        {/* نشان واقعی سازمان‌ها، همراه با عنوان همگام با اسلایدر. */}
         <PartnersSection />
 
         {/* Minimal recent-project cards with local spotlight hover and lazy WebP images. */}
@@ -121,47 +124,62 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section id="system" className="scroll-mt-28 bg-slate-950 py-20 text-white">
-          <div className="mx-auto grid max-w-7xl gap-10 px-6 lg:grid-cols-2 lg:items-center">
-            <div>
-              <div className="mb-3 text-sm font-black text-emerald-400">سامانه اختصاصی شرکت</div>
-              <h2 className="text-3xl font-black md:text-4xl">
+        {/* Product-style dashboard showcase: equipment intentionally rises beyond the top edge. */}
+        <section id="system" aria-labelledby="system-heading" className="zn-system-section relative isolate z-10 scroll-mt-28 overflow-visible bg-[#071f37] text-white">
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_18%_48%,rgba(18,164,164,0.15),transparent_43%),linear-gradient(115deg,#09253e_0%,#071c33_59%,#051426_100%)]" />
+          <div aria-hidden="true" className="pointer-events-none absolute right-0 top-0 h-full w-[36%] opacity-25 [background-image:repeating-radial-gradient(ellipse_at_100%_80%,transparent_0px,transparent_18px,rgba(41,199,183,0.24)_19px,transparent_20px)]" />
+          <div className="relative mx-auto grid max-w-[1450px] grid-cols-1 items-center gap-8 px-5 py-11 sm:px-8 md:grid-cols-[1.1fr_0.9fr] md:gap-10 lg:grid-cols-[1.06fr_0.88fr_0.98fr] lg:gap-6 lg:py-9 xl:gap-10">
+            <div className="relative z-10 text-right">
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1 text-xs font-black text-emerald-300 sm:text-sm">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
+                سامانه اختصاصی شرکت
+              </div>
+              <h2 id="system-heading" className="max-w-[630px] text-[clamp(1.45rem,2.4vw,2.45rem)] font-black leading-[1.65] tracking-tight">
                 ثبت، پیگیری و گزارش‌گیری پرونده‌ها در یک داشبورد
               </h2>
-              <p className="mt-5 leading-9 text-slate-300">
+              <p className="mt-3 max-w-xl text-sm leading-8 text-slate-200/85 sm:text-base">
                 کارمندان شرکت می‌توانند اطلاعات کشاورزان و پرونده‌ها را به صورت دستی یا از طریق اکسل وارد کنند.
                 مدیر نیز می‌تواند فعالیت هر کارمند، تاریخ ثبت اطلاعات، وضعیت پرونده‌ها و گزارش‌های کلی را مشاهده کند.
               </p>
             </div>
 
-            <div className="grid gap-4">
+            <div className="relative z-10 grid gap-3">
               {[
                 ['ثبت دستی اطلاعات کشاورز', UsersRound],
                 ['ورود گروهی اطلاعات از اکسل', FileSpreadsheet],
                 ['گزارش فعالیت کارمندان', ShieldCheck],
               ].map(([title, Icon]) => {
                 const RealIcon = Icon as typeof UsersRound;
-
                 return (
-                  <div key={title as string} className="flex items-center gap-4 rounded-3xl bg-white/10 p-5">
-                    <div className="grid h-12 w-12 place-items-center rounded-2xl bg-emerald-500/20 text-emerald-300">
-                      <RealIcon />
+                  <div key={title as string} className="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/[0.07] px-4 py-3.5 shadow-sm backdrop-blur-[3px] transition-colors hover:border-emerald-300/30 hover:bg-white/[0.11] sm:py-4">
+                    <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-emerald-400/15 text-emerald-300">
+                      <RealIcon size={22} aria-hidden="true" />
                     </div>
-                    <div className="font-black">{title as string}</div>
+                    <div className="text-sm font-extrabold leading-7 text-white sm:text-base">{title as string}</div>
                   </div>
                 );
               })}
+            </div>
+
+            <div className="zn-system-art pointer-events-none relative mx-auto h-[250px] w-full max-w-[470px] overflow-visible md:col-span-2 md:h-[315px] md:max-w-[530px] lg:col-span-1 lg:-mt-20 lg:mb-0 lg:h-[345px] lg:max-w-none" aria-label="نمای سه‌بعدی تجهیزات نقشه‌برداری">
+              <div aria-hidden="true" className="absolute bottom-10 left-[5%] h-32 w-[86%] rounded-[100%] bg-emerald-400/10 blur-3xl" />
+              <img
+                src="/images/landing/dashboard-survey-equipment.webp"
+                alt="نمای سه‌بعدی گیرنده GNSS، دوربین توتال استیشن و کنترلر نقشه‌برداری"
+                className="zn-system-art-img absolute bottom-0 left-1/2 w-[min(112%,520px)] max-w-none -translate-x-1/2 object-contain drop-shadow-[0_14px_21px_rgba(0,0,0,0.25)] md:w-[min(112%,570px)] lg:w-[min(148%,610px)]"
+                loading="lazy"
+                decoding="async"
+              />
             </div>
           </div>
         </section>
 
         {/* Original FeatureCarousel demo styling, kept intact just before the case request form. */}
-        <FeatureCarouselSection />
+        <CompanyAdvantagesSection />
 
         <CaseRequestSection />
       </main>
 
-      <SiteFooter />
-    </div>
+    </PublicSiteLayout>
   );
 }

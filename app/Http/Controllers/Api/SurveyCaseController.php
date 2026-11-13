@@ -12,6 +12,7 @@ use App\Support\CaseFilters;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use App\Services\CaseArchiveService;
+use App\Services\CaseLifecycleService;
 use Illuminate\Support\Facades\DB;
 
 class SurveyCaseController extends Controller
@@ -45,7 +46,52 @@ class SurveyCaseController extends Controller
             ->where('is_active', true)->orderBy('name')->get(['id','name'])]);
     }
 
-    public function store(Request $request)
+    public function trash(Request $request)
+    {
+        abort_unless($request->user()->isEmployee(), 403);
+        $filters = CaseFilters::validated($request);
+        $query = SurveyCase::onlyTrashed()->where('branch_id', $request->user()->branch_id)
+            ->where('created_by', $request->user()->id)
+            ->with(['status:id,title,color', 'stage:id,title,color']);
+        return response()->json(CaseFilters::response(CaseFilters::apply($query, $filters), $filters));
+    }
+
+    public function restore(Request $request, int $id, CaseLifecycleService $lifecycle)
+    {
+        abort_unless($request->user()->isEmployee(), 403);
+        $case = SurveyCase::withTrashed()->findOrFail($id);
+        abort_unless((int) $case->branch_id === (int) $request->user()->branch_id &&
+            (int) $case->created_by === (int) $request->user()->id, 404);
+        $case = $lifecycle->restoreFromTrash($case, $request->user());
+        $this->logLifecycle($request, $case, 'case_restored', 'بازیابی پرونده');
+        return response()->json(['message' => 'پرونده با همان شناسه و سوابق بازیابی شد.', 'case' => $this->loadCase($case)]);
+    }
+
+    public function permanentDestroy(Request $request, int $id)
+    {
+        abort_unless($request->user()->isEmployee(), 403);
+        $case = SurveyCase::onlyTrashed()->whereKey($id)->firstOrFail();
+        abort_unless((int) $case->branch_id === (int) $request->user()->branch_id &&
+            (int) $case->created_by === (int) $request->user()->id, 404);
+        DB::transaction(function () use ($case) {
+            // Archive stays intact; linked financial records / documents block removal.
+            app(CaseArchiveService::class)->removeWorkCase($case);
+        }, 3);
+        $this->logLifecycle($request, $case, 'case_permanently_deleted', 'حذف دائمی پرونده از بخش عملیاتی');
+        return response()->json(['message' => 'پرونده از دیتابیس عملیاتی حذف دائمی شد؛ سابقه حسابرسی رمزگذاری‌شده همچنان در آرشیو محفوظ است.']);
+    }
+
+    private function logLifecycle(Request $request, SurveyCase $case, string $action, string $verb): void
+    {
+        ActivityLog::create([
+            'user_id' => $request->user()->id, 'branch_id' => $case->branch_id,
+            'action' => $action, 'description' => $verb . ' «' . $case->owner_full_name . '» (شماره ' . $case->case_number . ')',
+            'subject_type' => SurveyCase::class, 'subject_id' => $case->id,
+            'ip_address' => $request->ip(), 'user_agent' => $request->userAgent(),
+        ]);
+    }
+
+    public function store(Request $request, CaseLifecycleService $lifecycle)
     {
         abort_unless($request->user()->isEmployee(), 403);
         abort_unless($request->user()->branch_id && $request->user()->branch?->is_active, 422, 'برای ثبت پرونده باید به شعبه فعال تخصیص داده شوید.');
@@ -55,17 +101,14 @@ class SurveyCaseController extends Controller
         $data['created_by'] = $request->user()->id;
         $data['updated_by'] = $request->user()->id;
 
-        $case = DB::transaction(function () use ($data) {
-            $case = SurveyCase::create($data);
-            app(CaseArchiveService::class)->capture($case, 'manual');
-            return $case;
-        });
+        $result = $lifecycle->createOrRestore($data, $request->user());
+        $case = $result['case'];
 
         ActivityLog::create([
             'user_id' => $request->user()->id,
             'branch_id' => $case->branch_id,
-            'action' => 'case_created',
-            'description' => 'ثبت پرونده «' . $case->owner_full_name . '» (شماره ' . $case->case_number . ')',
+            'action' => $result['restored'] ? 'case_restored' : 'case_created',
+            'description' => ($result['restored'] ? 'بازیابی پرونده «' : 'ثبت پرونده «') . $case->owner_full_name . '» (شماره ' . $case->case_number . ')',
             'subject_type' => SurveyCase::class,
             'subject_id' => $case->id,
             'new_values' => $case->toArray(),
@@ -73,7 +116,7 @@ class SurveyCaseController extends Controller
             'user_agent' => $request->userAgent(),
         ]);
 
-        return response()->json($this->loadCase($case), 201);
+        return response()->json([...$this->loadCase($case)->toArray(), 'restored' => $result['restored']], $result['restored'] ? 200 : 201);
     }
 
     public function show(Request $request, SurveyCase $surveyCase)
@@ -94,7 +137,7 @@ class SurveyCaseController extends Controller
         abort_unless(Visibility::canEditCase($request->user(), $surveyCase), 403, 'برای ویرایش این پرونده مجوز ندارید.');
         $oldValues = $surveyCase->toArray();
 
-        $data = $this->validatedData($request, $surveyCase->id);
+        $data = $this->validatedData($request, $surveyCase->id, true);
         $data['updated_by'] = $request->user()->id;
 
         DB::transaction(function () use ($surveyCase, $data) {
@@ -124,8 +167,10 @@ class SurveyCaseController extends Controller
         $this->authorizeCase($request, $surveyCase);
         abort_unless((int) $surveyCase->created_by === (int) $request->user()->id, 403, 'حذف پرونده مشترک مجاز نیست.');
         DB::transaction(function () use ($surveyCase) {
-            app(CaseArchiveService::class)->removeWorkCase($surveyCase);
-        });
+            // Regular delete is reversible. Do NOT forceDelete here.
+            $surveyCase->delete();
+            app(CaseArchiveService::class)->capture($surveyCase);
+        }, 3);
         ActivityLog::create([
             'user_id' => $request->user()->id, 'branch_id' => $surveyCase->branch_id,
             'action' => 'case_deleted', 'description' => 'حذف پرونده «' . $surveyCase->owner_full_name . '» (شماره ' . $surveyCase->case_number . ')',
@@ -133,7 +178,7 @@ class SurveyCaseController extends Controller
             'old_values' => $surveyCase->toArray(), 'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
         ]);
-        return response()->json(['message' => 'پرونده حذف شد؛ سوابق حسابرسی محفوظ است.']);
+        return response()->json(['message' => 'پرونده به سطل زباله منتقل شد؛ امکان بازیابی یا حذف دائمی از آنجا وجود دارد.']);
     }
 
     private function authorizeCase(Request $request, SurveyCase $case): void
@@ -141,13 +186,13 @@ class SurveyCaseController extends Controller
         abort_unless(Visibility::cases(SurveyCase::query()->whereKey($case->id), $request->user())->exists(), 404);
     }
 
-    private function validatedData(Request $request, ?int $caseId = null): array
+    private function validatedData(Request $request, ?int $caseId = null, bool $updating = false): array
     {
         $rules = [
-            'case_number' => ['required','string','max:100', Rule::unique('survey_cases','case_number')->ignore($caseId)->whereNull('deleted_at')],
+            'case_number' => [$updating ? 'sometimes' : 'required','string','max:100', Rule::unique('survey_cases','case_number')->ignore($caseId)->whereNull('deleted_at')],
             'activity_state' => ['sometimes','nullable',Rule::in(['active','inactive'])],
             'registration_state' => ['sometimes','nullable',Rule::in(['registered','unregistered'])],
-            'owner_full_name' => ['required','string','max:255','regex:/^[\p{L}\p{M}\s\x{200C}\-]+$/u'],
+            'owner_full_name' => [$updating ? 'sometimes' : 'required','string','max:255','regex:/^[\p{L}\p{M}\s\x{200C}\-]+$/u'],
             'case_date_jalali' => ['nullable','string','max:30'],
             'birth_date_jalali' => ['nullable','string','max:30'],
             'last_action_at_jalali' => ['nullable','string','max:30'],
@@ -175,6 +220,27 @@ class SurveyCaseController extends Controller
             'archive_code' => ['nullable','string','max:100'],
         ];
         $data = $request->validate($rules);
+        if ($updating) {
+            $original = SurveyCase::query()->findOrFail($caseId);
+            if (array_key_exists('case_number', $data)) {
+                if (CaseLifecycleService::normalizeNumber($data['case_number']) !==
+                    CaseLifecycleService::normalizeNumber((string) $original->case_number)) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'case_number' => 'برای حفظ شناسه آرشیو و تاریخچه، شماره پرونده از فرم ویرایش قابل تغییر نیست.',
+                    ]);
+                }
+                unset($data['case_number']);
+            }
+            if (array_key_exists('national_code', $data) && $original->national_code) {
+                $before = CaseLifecycleService::normalizeNumber((string) $original->national_code);
+                $after = CaseLifecycleService::normalizeNumber((string) ($data['national_code'] ?? ''));
+                if ($before !== $after) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'national_code' => 'تغییر کد ملی پرونده ثبت‌شده باید از مسیر بررسی هویت توسط مدیر انجام شود.',
+                    ]);
+                }
+            }
+        }
         foreach (['case_date_jalali','birth_date_jalali','last_action_at_jalali','next_action_at_jalali'] as $field) {
             if (!empty($data[$field])) {
                 $dateText = strtr($data[$field], ['۰'=>'0','۱'=>'1','۲'=>'2','۳'=>'3','۴'=>'4','۵'=>'5','۶'=>'6','۷'=>'7','۸'=>'8','۹'=>'9']);
@@ -202,11 +268,13 @@ class SurveyCaseController extends Controller
             }
         }
         // Jalali fields are kept as text and converted to matching Gregorian fields for date queries.
-        $data['status_id'] ??= $this->defaultLookupId('case_status', 'جدید');
-        $data['stage_id'] ??= $this->defaultLookupId('case_stage', 'ثبت اولیه');
-        $data['priority_id'] ??= $this->defaultLookupId('priority', 'عادی');
-        $data['contract_amount'] ??= 0;
-        $data['received_amount'] ??= 0;
+        if (!$updating) {
+            $data['status_id'] ??= $this->defaultLookupId('case_status', 'جدید');
+            $data['stage_id'] ??= $this->defaultLookupId('case_stage', 'ثبت اولیه');
+            $data['priority_id'] ??= $this->defaultLookupId('priority', 'عادی');
+            $data['contract_amount'] ??= 0;
+            $data['received_amount'] ??= 0;
+        }
         return $data;
     }
 

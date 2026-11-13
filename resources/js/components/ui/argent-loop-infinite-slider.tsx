@@ -333,7 +333,7 @@ export function Component({ slides = landingSlides, className = '' }: SliderProp
           </span>
           <span>{company.name} <i /> دیدی دقیق‌تر به زمین</span>
         </div>
-        <div className="zns-top-marker"><span className="zns-marker-dot" /> LAND & SURVEYING</div>
+        <div className="zns-top-marker"><span className="zns-marker-dot" /> نقشه‌برداری و مدیریت اراضی</div>
 
         <div className="zns-overlay" aria-live="polite" aria-atomic="true" key={currentSlide.id}>
           <span className="zns-kicker">{currentSlide.eyebrow}</span>
@@ -346,7 +346,7 @@ export function Component({ slides = landingSlides, className = '' }: SliderProp
         </div>
 
         <div className="zns-stage-bottom" aria-hidden="true">
-          <span>EXPLORE / ZAMIN NEGAR</span>
+          <span>زمین‌نگار</span>
           <span className="zns-stage-rule" />
           <span>حرکت بین نماها</span>
         </div>
@@ -355,11 +355,6 @@ export function Component({ slides = landingSlides, className = '' }: SliderProp
       <aside className="zns-rail" aria-label="پیش‌نمایش و کنترل اسلایدر">
         <div className="zns-rail-head">
           <span className="zns-rail-eyebrow">زمین‌نگار / معرفی</span>
-          <div className="zns-pagination" aria-label={`اسلاید ${currentIndex + 1} از ${slides.length}`} dir="ltr">
-            <strong>{asPersianNumber(currentIndex + 1)}</strong>
-            <span>/</span>
-            <span>{asPersianNumber(slides.length)}</span>
-          </div>
           <h4>نگاهی نزدیک‌تر<br />به آنچه انجام می‌دهیم</h4>
           <p>خدمات تخصصی برای شناخت، ثبت و مدیریت دقیق اراضی</p>
         </div>
@@ -381,7 +376,6 @@ export function Component({ slides = landingSlides, className = '' }: SliderProp
                   {slide.image ? <img src={slide.image} alt="" loading="lazy" /> : <span className="zns-preview-grid" />}
                 </span>
                 <span className="zns-preview-text">
-                  <small>{asPersianNumber(loopIndex(absoluteIndex, slides.length) + 1)}</small>
                   <span>{slide.category}</span>
                 </span>
                 {selected ? <span className="zns-active-indicator" /> : null}

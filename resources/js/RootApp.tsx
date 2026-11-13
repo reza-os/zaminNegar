@@ -1,11 +1,15 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import LandingPage from './pages/LandingPage';
+import AboutPage from './pages/AboutPage';
+import ServicesPage from './pages/ServicesPage';
 import LoginPage from './pages/LoginPage';
 import EmployeeDashboard from './pages/employee/EmployeeDashboard';
 import EmployeeActivityPage from './pages/employee/EmployeeActivityPage';
 import CaseListPage from './pages/employee/CaseListPage';
+import CaseTrashPage from './pages/employee/CaseTrashPage';
+import OfficeRequestsPage from './pages/employee/OfficeRequestsPage';
 import CaseCreatePage from './pages/employee/CaseCreatePage';
 import CaseEditPage from './pages/employee/CaseEditPage';
 import ImportBatchPage from './pages/employee/ImportBatchPage';
@@ -61,24 +65,45 @@ const Staff = ({ children }: { children: ReactNode }) => <Protected allowed={['e
 const Admin = ({ children }: { children: ReactNode }) => <Protected allowed={['admin']}>{children}</Protected>;
 const Manager = ({ children }: { children: ReactNode }) => <Protected allowed={['manager']}>{children}</Protected>;
 
+function PublicScrollRestoration() {
+  const location = useLocation();
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      if (location.hash) {
+        document.getElementById(decodeURIComponent(location.hash.substring(1)))?.scrollIntoView({ behavior: 'auto' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      }
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [location.pathname, location.hash]);
+  return null;
+}
+
 export default function RootApp() {
   return <BrowserRouter>
+    <PublicScrollRestoration />
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/landing" element={<LandingPage />} />
+      <Route path="/about" element={<AboutPage />} />
+      <Route path="/services" element={<ServicesPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/admin" element={<Navigate to="/admin/managers" replace />} />
       <Route path="/admin/managers" element={<Admin><AdminManagersPage/></Admin>} />
       <Route path="/manager" element={<Navigate to="/manager/dashboard" replace />} />
       <Route path="/manager/dashboard" element={<Manager><ManagerDashboardPage/></Manager>} />
+      <Route path="/manager/requests" element={<Manager><OfficeRequestsPage/></Manager>} />
       <Route path="/manager/finance" element={<Manager><ManagerFinancePage/></Manager>} />
       <Route path="/manager/branches" element={<Manager><ManagerBranchesPage/></Manager>} />
       <Route path="/manager/branches/:id" element={<Manager><ManagerBranchPage/></Manager>} />
       <Route path="/manager/employees" element={<Manager><ManagerEmployeesPage/></Manager>} />
       <Route path="/manager/data-access" element={<Manager><ManagerDataAccessPage/></Manager>} />
       <Route path="/employee/dashboard" element={<Staff><EmployeeDashboard/></Staff>} />
+      <Route path="/employee/requests" element={<Staff><OfficeRequestsPage/></Staff>} />
       <Route path="/employee/activities" element={<Staff><EmployeeActivityPage/></Staff>} />
       <Route path="/employee/cases" element={<Staff><CaseListPage/></Staff>} />
+      <Route path="/employee/cases/trash" element={<Staff><CaseTrashPage/></Staff>} />
       <Route path="/employee/cases/create" element={<Staff><CaseCreatePage/></Staff>} />
       <Route path="/employee/cases/:id/edit" element={<Staff><CaseEditPage/></Staff>} />
       <Route path="/employee/import" element={<Staff><ImportExcelPage/></Staff>} />

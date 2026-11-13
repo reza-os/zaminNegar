@@ -1,10 +1,11 @@
-import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FilePlus2, Loader2, Search } from 'lucide-react';
+import { FilePlus2, Loader2, Trash2 } from 'lucide-react';
 
 import DashboardLayout from '../../layouts/DashboardLayout';
 import { api } from '../../api/client';
 import CaseActionsDialog from '../../components/employee/CaseActionsDialog';
+import CaseFiltersPanel, { caseFilterParams, emptyCaseFilters, type CaseFilters } from '../../components/cases/CaseFiltersPanel';
 import './employee-warm.css';
 
 type User = { id: number; name: string; role: string };
@@ -60,20 +61,22 @@ export default function CaseListPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [error, setError] = useState('');
-  const [searchInput, setSearchInput] = useState('');
-  const [activeSearch, setActiveSearch] = useState('');
+  const [filters, setFilters] = useState<CaseFilters>(emptyCaseFilters);
   const [selectedCase, setSelectedCase] = useState<CaseItem | null>(null);
   const [actionError, setActionError] = useState('');
   const openerRef = useRef<HTMLButtonElement | null>(null);
+  const requestSequence = useRef(0);
   const canDelete = currentUser?.role === 'employee' || currentUser?.role === 'surveyor';
 
   useEffect(() => { api.get('/auth/me').then((response) => setCurrentUser(response.data?.user || response.data)).catch(() => setCurrentUser(null)); }, []);
 
   const fetchCases = useCallback(async (page = 1, append = false) => {
+    const sequence = ++requestSequence.current;
     if (append) setLoadingMore(true); else { setLoading(true); setCases([]); }
     setError('');
     try {
-      const response = await api.get('/survey-cases', { params: { page, per_page: 25, search: activeSearch || undefined } });
+      const response = await api.get('/survey-cases', { params: { page, per_page: 25, ...caseFilterParams(filters) } });
+      if (requestSequence.current !== sequence) return;
       const normalized = normalizeResponse(response.data);
       setCases((previous) => {
         if (!append) return normalized.items;
@@ -84,16 +87,13 @@ export default function CaseListPage() {
       });
       setMeta(normalized.meta);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'خطا در دریافت لیست پرونده‌ها');
+      if (requestSequence.current === sequence) setError(err.response?.data?.message || 'خطا در دریافت لیست پرونده‌ها');
     } finally {
-      setLoading(false);
-      setLoadingMore(false);
+      if (requestSequence.current === sequence) { setLoading(false); setLoadingMore(false); }
     }
-  }, [activeSearch]);
+  }, [filters]);
 
-  useEffect(() => { void fetchCases(1, false); }, [fetchCases]);
-  const handleSearch = (event: FormEvent) => { event.preventDefault(); setActiveSearch(searchInput.trim()); };
-  const clearSearch = () => { setSearchInput(''); setActiveSearch(''); };
+  useEffect(() => { void fetchCases(1, false); return () => { requestSequence.current++; }; }, [fetchCases]);
   const openActions = (item: CaseItem, opener: HTMLButtonElement | null) => {
     openerRef.current = opener;
     setActionError('');
@@ -103,7 +103,7 @@ export default function CaseListPage() {
 
   const deleteCase = async (item: CaseItem) => {
     if (!canDelete || item.can_delete === false) return setError('شما اجازه حذف پرونده را ندارید.');
-    const confirmed = window.confirm(`آیا از حذف پرونده «${item.case_number} - ${item.owner_full_name}» مطمئن هستید؟`);
+    const confirmed = window.confirm(`پرونده «${item.case_number} - ${item.owner_full_name}» به سطل زباله منتقل شود؟ بعداً می‌توانید آن را بازیابی کنید.`);
     if (!confirmed) return;
     setDeletingId(item.id); setError('');
     try {
@@ -125,28 +125,21 @@ export default function CaseListPage() {
             <h1 className="text-2xl font-black text-[var(--ew-text)]">پرونده‌های ثبت‌شده کارکن</h1>
             <p className="mt-2 max-w-2xl text-sm leading-7 text-[var(--ew-muted)]">ثبت، جست‌وجو، ویرایش و حذف پرونده‌های واردشده توسط خودتان در یک نمای گرم و یکدست.</p>
           </div>
-          <Link to="/employee/cases/create" className="employee-button">
-            <FilePlus2 size={18} />
-            ثبت پرونده جدید
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link to="/employee/cases/trash" className="employee-secondary-button"><Trash2 size={17}/> پرونده‌های حذف‌شده</Link>
+            <Link to="/employee/cases/create" className="employee-button">
+              <FilePlus2 size={18} /> ثبت پرونده جدید
+            </Link>
+          </div>
         </div>
 
         <div className="employee-grid-3">
           <div className="employee-stat-card"><div className="text-xs font-bold text-[var(--ew-muted)]">کل پرونده‌های من</div><div className="mt-2 text-2xl font-black">{formatNumber(meta.total)}</div></div>
           <div className="employee-stat-card"><div className="text-xs font-bold text-[var(--ew-muted)]">نمایش فعلی</div><div className="mt-2 text-2xl font-black">{formatNumber(cases.length)}</div></div>
-          <div className="employee-stat-card"><div className="text-xs font-bold text-[var(--ew-muted)]">جست‌وجوی فعال</div><div className="mt-2 text-sm font-black">{activeSearch || 'بدون فیلتر'}</div></div>
+          <div className="employee-stat-card"><div className="text-xs font-bold text-[var(--ew-muted)]">جست‌وجوی فعال</div><div className="mt-2 text-sm font-black">{Object.values(filters).some(Boolean) ? (filters.search || 'فیلتر ترکیبی فعال') : 'بدون فیلتر'}</div></div>
         </div>
 
-        <form onSubmit={handleSearch} className="employee-panel">
-          <div className="flex flex-col gap-3 md:flex-row">
-            <div className="relative flex-1">
-              <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--ew-muted)]" size={20} />
-              <input value={searchInput} onChange={(event) => setSearchInput(event.target.value)} placeholder="جستجو بر اساس شماره پرونده، نام، کد ملی، روستا، محل پرونده یا شماره تماس..." className="employee-input pr-12" />
-            </div>
-            <button type="submit" className="employee-secondary-button">جستجو</button>
-            {activeSearch && <button type="button" onClick={clearSearch} className="employee-soft-button">حذف جستجو</button>}
-          </div>
-        </form>
+        <CaseFiltersPanel value={filters} onApply={setFilters} title="جست‌وجو و فیلتر پرونده‌های من" />
 
         {error && <div className="employee-alert">{error}</div>}
 

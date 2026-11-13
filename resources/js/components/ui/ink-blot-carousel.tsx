@@ -27,7 +27,6 @@ type Transition = {
 };
 
 const wrap = (value: number, size: number) => (size ? ((value % size) + size) % size : 0);
-const persianNumber = (value: number) => String(value).padStart(2, '0').replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[Number(d)]);
 const ease = (t: number) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
 function ActionLink({ action, primary }: { action: HeroAction; primary: boolean }) {
@@ -308,11 +307,6 @@ export default function InkBlotCarousel({
       </div>
 
       <div className="znh-footer">
-        <div className="znh-counter" dir="ltr" aria-label={`اسلاید ${index + 1} از ${length}`}>
-          <span>{persianNumber(wrap(incoming ? incoming.to : index, length) + 1)}</span>
-          <span className="znh-counter-separator">/</span>
-          <span>{persianNumber(length)}</span>
-        </div>
         <div className="znh-controls" aria-label="کنترل اسلایدر">
           <button className="znh-nav" type="button" aria-label="اسلاید بعدی" onClick={() => goTo(index + 1)} disabled={Boolean(incoming) || length < 2}><ChevronRight size={19} /></button>
           <button className="znh-nav" type="button" aria-label="اسلاید قبلی" onClick={() => goTo(index - 1)} disabled={Boolean(incoming) || length < 2}><ChevronLeft size={19} /></button>

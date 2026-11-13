@@ -42,6 +42,15 @@ final class CaseArchiveService
                     'case_number' => 'این پرونده همچنان در بخش عملیاتی وجود دارد؛ ابتدا پرونده موجود را بررسی کنید.',
                 ]);
             }
+            // Never let a new employee inherit a hard-deleted case from the
+            // permanent archive, even when the old operational row is gone.
+            if ((int) $case->case_archive_id !== (int) $archive->id
+                && $archive->first_actor_id !== null
+                && (int) $archive->first_actor_id !== (int) $case->created_by) {
+                throw ValidationException::withMessages([
+                    'case_number' => 'سابقه این شماره پرونده در آرشیو متعلق به ثبت‌کننده دیگری است؛ به مدیر مراجعه کنید.',
+                ]);
+            }
             // Prevent an unrelated person from inheriting the same historical case number.
             $first = json_decode(Crypt::decryptString($archive->first_snapshot_ciphertext), true, 512, JSON_THROW_ON_ERROR);
             $firstNational = preg_replace('/\D+/u', '', (string)($first['national_code'] ?? ''));
@@ -49,6 +58,14 @@ final class CaseArchiveService
             if ($firstNational !== '' && $newNational !== '' && $firstNational !== $newNational) {
                 throw ValidationException::withMessages([
                     'case_number' => 'این شماره پرونده در آرشیو متعلق به کد ملی دیگری است. برای بررسی به مدیر مراجعه کنید.',
+                ]);
+            }
+            if ((int) $case->case_archive_id !== (int) $archive->id &&
+                ($firstNational === '' || $newNational === '') &&
+                mb_strtolower(trim((string) ($first['owner_full_name'] ?? '')), 'UTF-8') !==
+                mb_strtolower(trim((string) ($case->owner_full_name ?? '')), 'UTF-8')) {
+                throw ValidationException::withMessages([
+                    'case_number' => 'هویت مالک در آرشیو قابل تطبیق نیست؛ برای بررسی به مدیر مراجعه کنید.',
                 ]);
             }
         }
@@ -84,6 +101,44 @@ final class CaseArchiveService
             $case->saveQuietly();
         }
         return $archive;
+    }
+
+    /**
+     * Preflight for legacy hard-deleted records that exist ONLY in the archive.
+     * This prevents creating an unrelated operational row before the encrypted
+     * archive's ownership/identity check is reached (important on old MyISAM DBs).
+     */
+    public function assertArchivedIdentityForNewCase(array $payload): void
+    {
+        $number = CaseLifecycleService::normalizeNumber((string) ($payload['case_number'] ?? ''));
+        $identity = hash('sha256', (int) ($payload['branch_id'] ?? 0).'|'
+            .mb_strtolower(preg_replace('/\s+/u', ' ', $number), 'UTF-8'));
+        $archive = CaseArchive::query()->where('identity_hash', $identity)->first();
+        if (!$archive) return;
+
+        if ($archive->first_actor_id !== null &&
+            (int) $archive->first_actor_id !== (int) ($payload['created_by'] ?? 0)) {
+            throw ValidationException::withMessages([
+                'case_number' => 'پرونده قدیمی با این شماره متعلق به ثبت‌کننده دیگری است؛ بازیابی آن نیازمند بررسی مدیر است.',
+            ]);
+        }
+        $first = json_decode(Crypt::decryptString($archive->first_snapshot_ciphertext), true, 512, JSON_THROW_ON_ERROR);
+        $oldCode = preg_replace('/\D/u', '', CaseLifecycleService::normalizeNumber((string) ($first['national_code'] ?? '')));
+        $newCode = preg_replace('/\D/u', '', CaseLifecycleService::normalizeNumber((string) ($payload['national_code'] ?? '')));
+        if ($oldCode !== '' && $newCode !== '' && $oldCode !== $newCode) {
+            throw ValidationException::withMessages([
+                'case_number' => 'کد ملی پرونده در آرشیو با پرونده جدید یکسان نیست.',
+            ]);
+        }
+        if ($oldCode === '' || $newCode === '') {
+            $clean = static fn ($v) => mb_strtolower(preg_replace('/\s+/u', ' ', trim(str_replace(
+                ['ي', 'ك'], ['ی', 'ک'], (string) $v))), 'UTF-8');
+            if ($clean($first['owner_full_name'] ?? '') !== $clean($payload['owner_full_name'] ?? '')) {
+                throw ValidationException::withMessages([
+                    'case_number' => 'نام مالک در آرشیو با پرونده جدید یکسان نیست.',
+                ]);
+            }
+        }
     }
 
     /** Archive an uploaded file in a non-public disk directory, once per branch+hash. */
@@ -134,6 +189,7 @@ final class CaseArchiveService
      */
     public function removeWorkCase(SurveyCase $case, ?ImportBatch $batch = null): void
     {
+        abort_unless($case->trashed(), 409, 'برای حذف دائمی، پرونده باید ابتدا به سطل زباله منتقل شود.');
         if (Schema::hasTable('financial_invoices') && DB::table('financial_invoices')
             ->where('survey_case_id', $case->id)->exists()) {
             abort(409, 'این پرونده فاکتور مالی دارد؛ قبل از حذف عملیاتی باید تکلیف فاکتور مشخص شود.');

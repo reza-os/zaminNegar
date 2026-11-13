@@ -17,10 +17,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'active' => \App\Http\Middleware\EnsureActiveUser::class,
         ]);
 
-          $middleware->alias([
-            'role' => \App\Http\Middleware\RequireRole::class,
-            'active' => \App\Http\Middleware\EnsureActiveUser::class,
-        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
       

@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import {
   Building2,
   Home,
@@ -43,16 +44,16 @@ export function BottomNavBar({
         const Icon = navigationIcons[item.id] || Home;
         const isActive = activeId === item.id;
         return (
-          <a
+          <Link
             key={item.id}
-            href={item.href}
+            to={item.href}
             className={`zng-pill-link ${isActive ? 'zng-pill-link--active' : ''}`}
-            aria-current={isActive ? 'location' : undefined}
+            aria-current={isActive ? (item.href === '/about' || item.href === '/services' || item.href === '/' ? 'page' : 'location') : undefined}
             onClick={() => onNavigate?.(item)}
           >
             <Icon size={17} strokeWidth={1.8} aria-hidden="true" />
             <span>{item.label}</span>
-          </a>
+          </Link>
         );
       })}
     </nav>

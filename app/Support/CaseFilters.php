@@ -32,22 +32,22 @@ final class CaseFilters
         $search = trim($filters['search'] ?? '');
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
-                $like = '%' . $search . '%';
-                $q->where('case_number', 'like', $like)
-                    ->orWhere('owner_full_name', 'like', $like)
-                    ->orWhere('father_name', 'like', $like)
-                    ->orWhere('national_code', 'like', $like)
-                    ->orWhere('phone', 'like', $like)
-                    ->orWhere('village_name', 'like', $like)
-                    ->orWhere('file_location', 'like', $like)
-                    ->orWhere('archive_code', 'like', $like)
-                    ->orWhere('description', 'like', $like);
+                foreach (self::textVariants($search) as $variant) {
+                    foreach (['case_number', 'owner_full_name', 'father_name', 'national_code',
+                        'phone', 'village_name', 'file_location', 'archive_code', 'description'] as $field) {
+                        $q->orWhere($field, 'like', '%' . $variant . '%');
+                    }
+                }
             });
         }
 
         $village = trim($filters['village'] ?? '');
         if ($village !== '') {
-            $query->where('village_name', 'like', '%' . $village . '%');
+            $query->where(function ($q) use ($village) {
+                foreach (self::textVariants($village) as $variant) {
+                    $q->orWhere('village_name', 'like', '%' . $variant . '%');
+                }
+            });
         }
 
         foreach (['activity_state', 'registration_state'] as $column) {
@@ -71,6 +71,20 @@ final class CaseFilters
         }
 
         return $query;
+    }
+
+    /** Supports legacy Persian/Arabic digits and Persian/Arabic letter forms without rewriting user data. */
+    public static function textVariants(string $value): array
+    {
+        $original = trim(preg_replace('/\s+/u', ' ', $value));
+        $latin = strtr($original, [
+            '۰'=>'0','۱'=>'1','۲'=>'2','۳'=>'3','۴'=>'4','۵'=>'5','۶'=>'6','۷'=>'7','۸'=>'8','۹'=>'9',
+            '٠'=>'0','١'=>'1','٢'=>'2','٣'=>'3','٤'=>'4','٥'=>'5','٦'=>'6','٧'=>'7','٨'=>'8','٩'=>'9',
+            'ي'=>'ی','ك'=>'ک',
+        ]);
+        $persian = strtr($latin, ['0'=>'۰','1'=>'۱','2'=>'۲','3'=>'۳','4'=>'۴','5'=>'۵','6'=>'۶','7'=>'۷','8'=>'۸','9'=>'۹']);
+        $arabic = strtr($latin, ['0'=>'٠','1'=>'١','2'=>'٢','3'=>'٣','4'=>'٤','5'=>'٥','6'=>'٦','7'=>'٧','8'=>'٨','9'=>'٩','ی'=>'ي','ک'=>'ك']);
+        return array_values(array_unique(array_filter([$original, $latin, $persian, $arabic], fn ($v) => $v !== '')));
     }
 
     public static function response(Builder $query, array $filters): array

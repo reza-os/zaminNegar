@@ -8,6 +8,8 @@ use App\Models\LookupItem;
 use App\Models\SurveyCase;
 use App\Models\User;
 use App\Services\CaseArchiveService;
+use App\Services\CaseLifecycleService;
+use App\Models\ActivityLog;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -21,6 +23,7 @@ class SurveyCasesImport implements ToCollection, WithStartRow, WithChunkReading
     private int $totalRows = 0;
     private int $successRows = 0;
     private int $failedRows = 0;
+    private int $restoredRows = 0;
     private int $physicalRow = 1;
 
     /** When populated, process only the original failing Excel row numbers. */
@@ -49,6 +52,7 @@ class SurveyCasesImport implements ToCollection, WithStartRow, WithChunkReading
             $this->totalRows = (int) $this->importBatch->total_rows;
             $this->successRows = (int) $this->importBatch->success_rows;
             $this->failedRows = (int) $this->importBatch->failed_rows;
+            $this->restoredRows = (int) $this->importBatch->restored_rows;
         }
     }
 
@@ -81,7 +85,7 @@ class SurveyCasesImport implements ToCollection, WithStartRow, WithChunkReading
             }
 
             try {
-                $caseNumber = $this->text($rowArray[2] ?? null);
+                $caseNumber = CaseLifecycleService::normalizeNumber($this->text($rowArray[2] ?? null));
 
                 $hasExplicitNumber = $caseNumber !== '';
                 if ($caseNumber === '') {
@@ -172,16 +176,21 @@ class SurveyCasesImport implements ToCollection, WithStartRow, WithChunkReading
                     }
                 }
 
-                // Each imported file owns its own set of newly-created cases.
-                // Overwriting a case from a prior batch would silently move ownership
-                // between import groups and break safe batch deletion.
-                if (SurveyCase::withTrashed()->where('case_number', $caseNumber)->exists()) {
-                    throw new \RuntimeException('شماره پرونده قبلاً ثبت شده (حتی اگر حذف نرم شده باشد)؛ ردیف تکراری ذخیره نشد.');
+                // Existing active records are never overwritten by an ordinary import.
+                // Deleted records owned by this employee are restored with their original ID,
+                // original import batch and immutable audit archive identity.
+                $result = app(CaseLifecycleService::class)->createOrRestore($payload, $this->user, 'excel', $this->importBatch);
+                if ($result['restored']) {
+                    $this->restoredRows++;
+                    ActivityLog::create([
+                        'user_id' => $this->user->id,
+                        'branch_id' => $result['case']->branch_id,
+                        'action' => 'case_restored_from_excel',
+                        'description' => 'بازیابی پرونده حذف‌شده از اکسل (شماره '.$caseNumber.')',
+                        'subject_type' => SurveyCase::class,
+                        'subject_id' => $result['case']->id,
+                    ]);
                 }
-                DB::transaction(function () use ($payload) {
-                    $case = SurveyCase::create($payload);
-                    app(CaseArchiveService::class)->capture($case, 'excel', $this->importBatch);
-                });
 
                 if ($this->retryRowSet !== null) {
                     ImportError::query()->where('import_batch_id', $this->importBatch->id)
@@ -211,6 +220,7 @@ class SurveyCasesImport implements ToCollection, WithStartRow, WithChunkReading
         $this->importBatch->update([
             'total_rows' => $this->totalRows,
             'success_rows' => $this->successRows,
+            'restored_rows' => $this->restoredRows,
             'failed_rows' => $this->failedRows,
             // Do not mark a 300-row chunk as the whole file being completed.
             // Controller finalizes the batch only after all chunks finish.

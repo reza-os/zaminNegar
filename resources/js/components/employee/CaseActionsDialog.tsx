@@ -128,7 +128,7 @@ export default function CaseActionsDialog({
           {canDelete && (
             <button type="button" onClick={onDelete} disabled={isDeleting} className="employee-danger-button min-h-12">
               {isDeleting ? <Loader2 className="animate-spin" size={17} aria-hidden="true" /> : <Trash2 size={17} aria-hidden="true" />}
-              {isDeleting ? 'در حال حذف...' : 'حذف پرونده'}
+              {isDeleting ? 'در حال حذف...' : 'انتقال به سطل زباله'}
             </button>
           )}
         </div>

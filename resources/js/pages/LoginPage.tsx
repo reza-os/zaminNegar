@@ -3,7 +3,8 @@ import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import { homeFor } from '../lib/roles';
-import { LoginForm, SmokeyBackground } from '../components/ui/login-form';
+import { LoginForm } from '../components/ui/login-form';
+import '../components/ui/login-page.css';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -37,9 +38,9 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="relative flex min-h-screen min-h-[100svh] w-full items-center justify-center overflow-hidden bg-gray-900 p-4" dir="rtl">
-      <SmokeyBackground className="absolute inset-0" color="#1E40AF" backdropBlurAmount="sm" />
-      <div className="relative z-10 flex w-full items-center justify-center py-8">
+    <main className="zn-login-page relative flex min-h-screen min-h-[100svh] w-full items-center justify-start overflow-hidden p-4 sm:p-8" dir="rtl">
+      <div className="zn-login-page-shade" aria-hidden="true" />
+      <div className="relative z-10 flex w-full items-center justify-start py-8 sm:pr-[4vw] lg:pr-[7vw]">
         <LoginForm
           login={login}
           password={password}

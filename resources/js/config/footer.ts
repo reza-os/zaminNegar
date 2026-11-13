@@ -1,18 +1,18 @@
 export const footerContent = {
   about:
-    'شرکت زمین‌نگار ارائه‌دهنده خدمات تخصصی نقشه‌برداری، برداشت UTM، امور ثبتی و مدیریت پرونده‌های اراضی است. این بخش را می‌توانید بعداً با معرفی واقعی شرکت تکمیل کنید.',
+    'زمین‌نگار ارائه‌دهنده خدمات نقشه‌برداری، برداشت UTM، تهیه نقشه اراضی و مدیریت اطلاعات پرونده‌هاست. برای بررسی درخواست خود، دفتر مربوط را از فرم آنلاین انتخاب کنید.',
   quickLinks: [
-    { label: 'خانه', href: '#hero' },
-    { label: 'معرفی شرکت', href: '#showcase' },
-    { label: 'خدمات', href: '#services' },
-    { label: 'سامانه', href: '#system' },
-    { label: 'ثبت درخواست', href: '#contact' },
+    { label: 'خانه', href: '/' },
+    { label: 'معرفی شرکت', href: '/about' },
+    { label: 'خدمات', href: '/services' },
+    { label: 'سامانه', href: '/#system' },
+    { label: 'ثبت درخواست', href: '/#contact' },
   ],
   supportLinks: [
-    { label: 'خدمات نقشه‌برداری', href: '#services' },
-    { label: 'پروژه‌های اخیر', href: '#recent-projects' },
-    { label: 'همراهان و کارفرمایان', href: '#partners' },
-    { label: 'فرم درخواست تشکیل پرونده', href: '#contact' },
+    { label: 'خدمات نقشه‌برداری', href: '/services' },
+    { label: 'پروژه‌های اخیر', href: '/#recent-projects' },
+    { label: 'همراهان و کارفرمایان', href: '/#partners' },
+    { label: 'فرم درخواست تشکیل پرونده', href: '/#contact' },
   ],
   phones: [
     { label: 'فروش و مشاوره', value: '۰۹۱۲-۰۰۰-۰۰۰۰', href: 'tel:09120000000' },

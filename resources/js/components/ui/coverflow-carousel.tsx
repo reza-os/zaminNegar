@@ -8,6 +8,7 @@ export interface CoverflowSlide {
   src?: string;
   alt?: string;
   title: string;
+  darkLogo?: boolean;
 }
 
 export interface CoverflowCarouselProps {
@@ -18,6 +19,7 @@ export interface CoverflowCarouselProps {
   rotate?: number;
   /** به‌صورت پیش‌فرض انیمیشن خودکار خاموش است تا منابع مصرف نشوند. */
   autoplayMs?: number;
+  onActiveChange?: (index: number) => void;
 }
 
 function Logo({ slide }: { slide: CoverflowSlide }) {
@@ -59,6 +61,7 @@ export function CoverflowCarousel({
   className = '',
   rotate = 18,
   autoplayMs = 0,
+  onActiveChange,
 }: CoverflowCarouselProps) {
   const count = slides.length;
   const [current, setCurrent] = React.useState(0);
@@ -67,6 +70,10 @@ export function CoverflowCarousel({
   const dragRef = React.useRef<{ x: number; y: number; id: number } | null>(null);
   const [isVisible, setIsVisible] = React.useState(false);
   const [isReducedMotion, setReducedMotion] = React.useState(false);
+  const [isHovered, setIsHovered] = React.useState(false);
+  const [hasFocus, setHasFocus] = React.useState(false);
+
+  React.useEffect(() => onActiveChange?.(active), [active, onActiveChange]);
 
   const nudge = React.useCallback((step: number) => {
     if (count > 1) setCurrent((old) => (old + step + count) % count);
@@ -90,12 +97,12 @@ export function CoverflowCarousel({
   }, [autoplayMs]);
 
   React.useEffect(() => {
-    if (!autoplayMs || count < 2 || !isVisible || isReducedMotion) return;
+    if (!autoplayMs || count < 2 || !isVisible || isReducedMotion || isHovered || hasFocus) return;
     const timer = window.setInterval(() => {
       if (!document.hidden && !dragRef.current) nudge(1);
     }, Math.max(2500, autoplayMs));
     return () => window.clearInterval(timer);
-  }, [autoplayMs, count, isVisible, isReducedMotion, nudge]);
+  }, [autoplayMs, count, isVisible, isReducedMotion, isHovered, hasFocus, nudge]);
 
   const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     if (count < 2 || (event.pointerType === 'mouse' && event.button !== 0)) return;
@@ -137,7 +144,7 @@ export function CoverflowCarousel({
   if (!count) return null;
 
   return (
-    <div className={`znp-carousel ${className}`} role="region" aria-roledescription="carousel" aria-label={label} dir="rtl">
+    <div className={`znp-carousel ${className}`} role="region" aria-roledescription="carousel" aria-label={label} dir="rtl" onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)} onFocusCapture={() => setHasFocus(true)} onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node)) setHasFocus(false); }}>
       <div
         className="znp-stage"
         ref={frameRef}
@@ -173,12 +180,13 @@ export function CoverflowCarousel({
               aria-current={index === active ? 'true' : undefined}
               aria-hidden={opacity === 0 ? true : undefined}
               style={{
-                transform: `translate3d(calc(-50% + ${offset * 142}% + var(--znp-drag, 0px)), 0, ${-24 * rake}px) rotateY(${-tilt}deg)`,
+                transform: `translate3d(calc(-50% + ${offset * 122}% + var(--znp-drag, 0px)), 0, ${-24 * rake}px) rotateY(${-tilt}deg)`,
                 opacity,
                 zIndex: 20 - Math.round(distance),
               }}
             >
-              <Logo slide={slide} />
+              <span className={`znp-logo-frame ${slide.darkLogo ? 'znp-logo-frame--dark' : ''}`}><Logo slide={slide} /></span>
+              <span className="znp-card-name">{slide.title}</span>
             </div>
           );
         })}
@@ -188,9 +196,6 @@ export function CoverflowCarousel({
           <button type="button" className="znp-arrow" aria-label="لوگوی قبلی" onClick={() => nudge(-1)}>
             <ChevronRight size={17} strokeWidth={1.7} aria-hidden="true" />
           </button>
-          <span className="znp-count" aria-live="polite" aria-atomic="true">
-            {String(active + 1).padStart(2, '0')} <span>/</span> {String(count).padStart(2, '0')}
-          </span>
           <button type="button" className="znp-arrow" aria-label="لوگوی بعدی" onClick={() => nudge(1)}>
             <ChevronLeft size={17} strokeWidth={1.7} aria-hidden="true" />
           </button>
