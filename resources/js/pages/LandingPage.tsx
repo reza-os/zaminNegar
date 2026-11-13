@@ -11,7 +11,7 @@ import PublicSiteLayout from '../components/PublicSiteLayout';
 import PartnersSection from '../components/PartnersSection';
 import RecentProjectsSection from '../components/RecentProjectsSection';
 import CaseRequestSection from '../components/CaseRequestSection';
-import CompanyAdvantagesSection from '../components/CompanyAdvantagesSection';
+import FeatureCarouselSection from '../components/FeatureCarouselSection';
 import { company } from '../config/company';
 
 import * as React from 'react';
@@ -174,8 +174,8 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Original FeatureCarousel demo styling, kept intact just before the case request form. */}
-        <CompanyAdvantagesSection />
+        {/* Original animated carousel restored: only branded content, colors and images changed. */}
+        <FeatureCarouselSection />
 
         <CaseRequestSection />
       </main>

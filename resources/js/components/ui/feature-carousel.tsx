@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
-  Pizza04Icon,
   CommandIcon,
   GlobalSearchIcon,
   AiCloudIcon,
@@ -15,87 +14,77 @@ import {
 import { cn } from "../../lib/utils";
 import { HugeiconsIcon } from "@hugeicons/react";
 
-// Change Here
+// Surveying-focused content. Original order, count, layout, and motion are preserved.
 const FEATURES = [
   {
-    id: "sustainable",
-    label: "Sustainable Sourcing",
-    icon: Pizza04Icon,
-    image:
-      "https://cdn.21st.dev/assets/mirror/c4/c48702475dc62d18bff61e34fb6b240e41d0e33808066607c819abc51c708de5.jpg",
-    description: "Ethically sourced ingredients from local farmers.",
-  },
-  {
-    id: "community",
-    label: "Community Focused",
-    icon: CommandIcon,
-    image:
-      "https://cdn.21st.dev/assets/mirror/c7/c7f3916c2cdc545b8254cc8ce6ae0e4de3f44ad0428502f9be8e0fe1134ecb81.jpg",
-    description: "Building stronger bonds through shared experiences.",
-  },
-  {
-    id: "global",
-    label: "Global Reach",
+    id: "field-survey",
+    label: "نقشه‌برداری زمینی",
     icon: GlobalSearchIcon,
-    image:
-      "https://cdn.21st.dev/assets/mirror/e0/e02da34643b79ef162a713de4eb8dd88f8249f5bcffe0409a6d447c9918d50aa.jpg",
-    description: "Connecting visionaries across all continents.",
+    image: "/images/features/field-survey.webp",
+    description: "برداشت دقیق وضع موجود و مستندسازی اطلاعات زمین.",
   },
   {
-    id: "award",
-    label: "Award Winning",
+    id: "utm",
+    label: "تعیین مختصات UTM",
+    icon: CommandIcon,
+    image: "/images/features/utm.webp",
+    description: "تعیین موقعیت و آماده‌سازی مختصات اراضی و املاک.",
+  },
+  {
+    id: "topography",
+    label: "نقشه‌های توپوگرافی",
+    icon: GlobalSearchIcon,
+    image: "/images/features/topography.webp",
+    description: "نمایش عوارض و پستی‌وبلندی زمین برای برنامه‌ریزی دقیق.",
+  },
+  {
+    id: "projects",
+    label: "پروژه‌های عمرانی",
     icon: CheckmarkCircle01Icon,
-    image:
-      "https://cdn.21st.dev/assets/mirror/ce/ce089361785f3d1b45326b5a5e6478fba2c133d475401377354ef55f2e153289.jpg",
-    description: "Recognized excellence in design and innovation.",
+    image: "/images/features/projects.webp",
+    description: "برداشت و تهیه اطلاعات نقشه‌برداری برای فعالیت‌های اجرایی.",
   },
   {
-    id: "cloud",
-    label: "Cloud Ready",
-    icon: AiCloudIcon,
-    image:
-      "https://cdn.21st.dev/assets/mirror/fa/fa833daf43d62353c6d39bbc0ca40a9396e461c81c61b8195df01eb983f0bc95.jpg",
-    description: "Scale your infrastructure with seamless ease.",
-  },
-  {
-    id: "mobile",
-    label: "Mobile First",
-    icon: SmartPhone01Icon,
-    image:
-      "https://cdn.21st.dev/assets/mirror/24/2490eb35d201db5bb6758f8e5508f2301462c803f72cc38e34097d74f6d30578.jpg",
-    description: "A world-class experience on every single device.",
-  },
-  {
-    id: "analytics",
-    label: "Real-time Analytics",
+    id: "cadastre",
+    label: "امور ثبتی و کاداستر",
     icon: DashboardSquare01Icon,
-    image:
-      "https://images.unsplash.com/photo-1551288049-bbda38a10ad5?q=80&w=1200",
-    description: "Insights at your fingertips, updated in real-time.",
+    image: "/images/features/cadastre.webp",
+    description: "تهیه نقشه و مستندات مکانی موردنیاز پرونده‌های ثبتی.",
   },
   {
-    id: "security",
-    label: "Enterprise Security",
-    icon: CheckmarkCircle01Icon,
-    image:
-      "https://cdn.21st.dev/assets/mirror/8a/8acb03b53b306de4389cc3fd7b4317a9941714060e94a8a19f19853faefc033e.jpg",
-    description: "Bank-grade security protocols for your data.",
+    id: "agriculture",
+    label: "اراضی کشاورزی",
+    icon: CommandIcon,
+    image: "/images/features/agriculture.webp",
+    description: "برداشت و سامان‌دهی اطلاعات مزارع، باغ‌ها و قطعات زمین.",
   },
   {
-    id: "magic",
-    label: "Magic Automations",
+    id: "case-management",
+    label: "مدیریت پرونده‌ها",
+    icon: AiCloudIcon,
+    image: "/images/features/case-management.webp",
+    description: "ثبت و پیگیری منظم پرونده‌ها در سامانه زمین‌نگار.",
+  },
+  {
+    id: "excel",
+    label: "ورود اطلاعات اکسل",
+    icon: DashboardSquare01Icon,
+    image: "/images/features/excel.webp",
+    description: "ورود گروهی اطلاعات و کاهش کارهای تکراری هنگام ثبت.",
+  },
+  {
+    id: "tracking",
+    label: "پیگیری وضعیت پرونده",
+    icon: SmartPhone01Icon,
+    image: "/images/features/tracking.webp",
+    description: "دسترسی سریع‌تر به وضعیت رسیدگی و سوابق ثبت اطلاعات.",
+  },
+  {
+    id: "reporting",
+    label: "گزارش عملکرد",
     icon: MagicWandIcon,
-    image:
-      "https://cdn.21st.dev/assets/mirror/f7/f7b431dacfc2e3322286eac990b187bd031079e0cd3330d88c6293027a71ed04.jpg",
-    description: "Let AI handle the repetitive tasks for you.",
-  },
-  {
-    id: "local",
-    label: "Locally Owned",
-    icon: CheckmarkCircle01Icon,
-    image:
-      "https://cdn.21st.dev/assets/mirror/a7/a7c0cea7f9109a4f193768199927768e14de429f3b41a69ffb9b55bbda4a9abc.jpg",
-    description: "Supporting local businesses and creators.",
+    image: "/images/features/reporting.webp",
+    description: "مرور فعالیت کارمندان و گزارش‌های مدیریتی در یک نما.",
   },
 ];
 
@@ -165,9 +154,9 @@ export function FeatureCarousel() {
   return (
     <div ref={carouselRef} className="w-full max-w-7xl mx-auto md:p-8">
       <div className="relative overflow-hidden rounded-[2.5rem] lg:rounded-[4rem] flex flex-col lg:flex-row min-h-[600px] lg:aspect-video border border-border/40">
-        <div className="w-full lg:w-[40%] min-h-[350px] md:min-h-[450px] lg:h-full relative z-30 flex flex-col items-start justify-center overflow-hidden px-8 md:px-16 lg:pl-16 bg-[#62B2FE] ">
-          <div className="absolute inset-x-0 top-0 h-12 md:h-20 lg:h-16 bg-gradient-to-b from-[#62B2FE] via-[#62B2FE]/80 to-transparent z-40" />
-          <div className="absolute inset-x-0 bottom-0 h-12 md:h-20 lg:h-16 bg-gradient-to-t from-[#62B2FE] via-[#62B2FE]/80 to-transparent z-40" />
+        <div className="w-full lg:w-[40%] min-h-[350px] md:min-h-[450px] lg:h-full relative z-30 flex flex-col items-start justify-center overflow-hidden px-8 md:px-16 lg:pl-16 bg-[#087864] ">
+          <div className="absolute inset-x-0 top-0 h-12 md:h-20 lg:h-16 bg-gradient-to-b from-[#087864] via-[#087864]/80 to-transparent z-40" />
+          <div className="absolute inset-x-0 bottom-0 h-12 md:h-20 lg:h-16 bg-gradient-to-t from-[#087864] via-[#087864]/80 to-transparent z-40" />
           <div className="relative w-full h-full flex items-center justify-center lg:justify-start z-20">
             {FEATURES.map((feature, index) => {
               const isActive = index === currentIndex;
@@ -205,14 +194,14 @@ export function FeatureCarousel() {
                     className={cn(
                       "relative flex items-center gap-4 px-6 md:px-10 lg:px-8 py-3.5 md:py-5 lg:py-4 rounded-full transition-all duration-700 text-left group border",
                       isActive
-                        ? "bg-white text-[#62B2FE] border-white z-10"
+                        ? "bg-[#FFFEFA] text-[#087864] border-[#FFFEFA] z-10"
                         : "bg-transparent text-white/60 border-white/20 hover:border-white/40 hover:text-white"
                     )}
                   >
                     <div
                       className={cn(
                         "flex items-center justify-center transition-colors duration-500",
-                        isActive ? "text-[#62B2FE]" : "text-white/40"
+                        isActive ? "text-[#087864]" : "text-white/40"
                       )}
                     >
                       <HugeiconsIcon
@@ -222,7 +211,7 @@ export function FeatureCarousel() {
                       />
                     </div>
 
-                    <span className="font-normal text-sm md:text-[15px] tracking-tight whitespace-nowrap uppercase">
+                    <span dir="rtl" className="font-normal text-sm md:text-[15px] tracking-tight whitespace-nowrap uppercase">
                       {feature.label}
                     </span>
                   </button>
@@ -285,7 +274,7 @@ export function FeatureCarousel() {
                         <div className="bg-background text-foreground px-4 py-1.5 rounded-full text-[11px] font-normal uppercase tracking-[0.2em] w-fit shadow-lg mb-3 border border-border/50">
                           {feature.label}
                         </div>
-                        <p className="text-white font-normal text-xl md:text-2xl leading-tight drop-shadow-md tracking-tight">
+                        <p dir="rtl" className="text-white font-normal text-xl md:text-2xl leading-tight drop-shadow-md tracking-tight">
                           {feature.description}
                         </p>
                       </motion.div>
@@ -300,7 +289,7 @@ export function FeatureCarousel() {
                   >
                     <div className="w-2 h-2 rounded-full bg-white shadow-[0_0_10px_white]" />
                     <span className="text-white/80 text-[10px] font-normal uppercase tracking-[0.3em] font-mono">
-                      Live Session
+                      زمین‌نگار
                     </span>
                   </div>
                 </motion.div>

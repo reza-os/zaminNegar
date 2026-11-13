@@ -4,8 +4,8 @@ import SectionErrorBoundary from './SectionErrorBoundary';
 
 const FeatureCarousel = React.lazy(() => import('./ui/feature-carousel'));
 
-/** Original blue two-column carousel, placed immediately before case request.
- * The demo is intentionally unchanged in wording and visual presentation.
+/** The original two-column carousel, retaining its original animations and layout.
+ * Only brand colors, Persian content and local images have been refreshed.
  */
 export default function FeatureCarouselSection() {
   const markerRef = React.useRef<HTMLDivElement>(null);
@@ -28,13 +28,13 @@ export default function FeatureCarouselSection() {
   }, []);
 
   return (
-    <section id="zfeature" dir="ltr" aria-label="Feature carousel" className="px-4 py-12 sm:px-6 lg:py-16">
+    <section id="zfeature" dir="ltr" aria-label="معرفی خدمات و قابلیت‌های زمین‌نگار" className="px-4 py-12 sm:px-6 lg:py-16">
       <div ref={markerRef} className="mx-auto max-w-7xl">
         {shouldMount ? (
           <SectionErrorBoundary
             name="FeatureCarousel"
             fallback={
-              <div role="status" dir="rtl" className="flex min-h-52 items-center justify-center rounded-[2.5rem] bg-[#62B2FE] px-6 py-12 text-center text-sm text-white lg:rounded-[4rem]">
+              <div role="status" dir="rtl" className="flex min-h-52 items-center justify-center rounded-[2.5rem] bg-[#087864] px-6 py-12 text-center text-sm text-white lg:rounded-[4rem]">
                 نمایش بخش معرفی در حال حاضر امکان‌پذیر نیست. سایر قسمت‌های سایت فعال هستند.
               </div>
             }
